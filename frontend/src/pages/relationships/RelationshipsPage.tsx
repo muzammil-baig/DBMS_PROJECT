@@ -23,10 +23,15 @@ import { Modal } from '../../components/common/Modal';
 import { Alert } from '../../components/common/Alert';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState } from '../../components/common/EmptyState';
-import { formatConfidence, formatDate } from '../../utils/formatters';
+import {
+  formatConfidence,
+  formatDate,
+  getActiveReferenceItems,
+  getDefaultDataClassCode,
+} from '../../utils/formatters';
 
 export const RelationshipsPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialEventId = searchParams.get('event_id') || searchParams.get('cause_event_id') || '';
 
   // State
@@ -44,7 +49,7 @@ export const RelationshipsPage: React.FC = () => {
   const [confidenceScore, setConfidenceScore] = useState('0.85');
   const [explanation, setExplanation] = useState('');
   const [temporalOverrideReason, setTemporalOverrideReason] = useState('');
-  const [dataClassCode, setDataClassCode] = useState('internal');
+  const [dataClassCode, setDataClassCode] = useState('');
   const [dataClasses, setDataClasses] = useState<ReferenceDataClass[]>([]);
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
 
@@ -65,25 +70,63 @@ export const RelationshipsPage: React.FC = () => {
   // Evidence Modal
   const [evidenceModalRelId, setEvidenceModalRelId] = useState<string | null>(null);
   const [evidenceTypeCode, setEvidenceTypeCode] = useState('');
+  const [evidenceDataClassCode, setEvidenceDataClassCode] = useState('');
   const [evidenceDesc, setEvidenceDesc] = useState('');
   const [evidenceRef, setEvidenceRef] = useState('');
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [evidenceTypes, setEvidenceTypes] = useState<ReferenceEvidenceType[]>([]);
+  const [evidenceError, setEvidenceError] = useState<string | null>(null);
   const [isSubmittingEvidence, setIsSubmittingEvidence] = useState(false);
+
+  const loadReferenceData = async (forceFresh = false) => {
+    const [dcRes, etRes] = await Promise.allSettled([
+      referenceService.getReference<ReferenceDataClass>('data_classes', forceFresh),
+      referenceService.getReference<ReferenceEvidenceType>('evidence_types', forceFresh),
+    ]);
+
+    let activeDataClasses: ReferenceDataClass[] = [];
+    let activeEvidenceTypes: ReferenceEvidenceType[] = [];
+
+    if (dcRes.status === 'fulfilled') {
+      activeDataClasses = getActiveReferenceItems(dcRes.value);
+      setDataClasses(activeDataClasses);
+      const defaultDc = getDefaultDataClassCode(activeDataClasses);
+      if (defaultDc) {
+        setDataClassCode((prev) => (activeDataClasses.some((d) => d.code === prev) ? prev : defaultDc));
+        setEvidenceDataClassCode((prev) =>
+          activeDataClasses.some((d) => d.code === prev) ? prev : defaultDc
+        );
+      }
+    }
+
+    if (etRes.status === 'fulfilled') {
+      activeEvidenceTypes = getActiveReferenceItems(etRes.value);
+      setEvidenceTypes(activeEvidenceTypes);
+      if (activeEvidenceTypes.length > 0) {
+        setEvidenceTypeCode((prev) =>
+          activeEvidenceTypes.some((t) => t.code === prev) ? prev : activeEvidenceTypes[0].code
+        );
+      }
+    }
+
+    return { dcRes, etRes, activeDataClasses, activeEvidenceTypes };
+  };
 
   // Initial load: events and reference
   useEffect(() => {
     const init = async () => {
       try {
-        const [evPage, dClasses, evTypes] = await Promise.all([
+        const [evPage, refs] = await Promise.all([
           eventService.listEvents({ page: 1, page_size: 100 }),
-          referenceService.getDataClasses().catch(() => []),
-          referenceService.getEvidenceTypes().catch(() => []),
+          loadReferenceData(),
         ]);
         setEventsList(evPage.items);
-        setDataClasses(dClasses);
-        setEvidenceTypes(evTypes);
-        if (evTypes.length > 0) setEvidenceTypeCode(evTypes[0].code);
+
+        if (refs.dcRes.status === 'rejected') {
+          setError(extractErrorMessage(refs.dcRes.reason, 'Failed to load data classifications.'));
+        } else if (refs.etRes.status === 'rejected') {
+          setError(extractErrorMessage(refs.etRes.reason, 'Failed to load evidence types.'));
+        }
 
         const chosen = initialEventId || (evPage.items.length > 0 ? evPage.items[0].event_id : '');
         setSelectedEventId(chosen);
@@ -128,6 +171,10 @@ export const RelationshipsPage: React.FC = () => {
     }
     if (causeEventId === effectEventId) {
       setError('An event cannot be causally linked to itself.');
+      return;
+    }
+    if (!dataClassCode) {
+      setError('Please select a data classification.');
       return;
     }
     if (!explanation.trim()) {
@@ -208,10 +255,67 @@ export const RelationshipsPage: React.FC = () => {
     }
   };
 
+  const openEvidenceModal = async (relId: string) => {
+    setEvidenceError(null);
+    setEvidenceDesc('');
+    setEvidenceRef('');
+    setEvidenceUrl('');
+    setEvidenceModalRelId(relId);
+
+    const defaultDc = getDefaultDataClassCode(dataClasses);
+    if (defaultDc) {
+      setEvidenceDataClassCode(defaultDc);
+    }
+    if (evidenceTypes.length > 0 && !evidenceTypes.some((et) => et.code === evidenceTypeCode)) {
+      setEvidenceTypeCode(evidenceTypes[0].code);
+    }
+
+    if (dataClasses.length === 0 || evidenceTypes.length === 0) {
+      const refs = await loadReferenceData(true);
+      if (refs.dcRes.status === 'rejected') {
+        setEvidenceError(
+          extractErrorMessage(refs.dcRes.reason, 'Failed to load data classifications from backend.')
+        );
+      } else if (refs.etRes.status === 'rejected') {
+        setEvidenceError(
+          extractErrorMessage(refs.etRes.reason, 'Failed to load evidence types from backend.')
+        );
+      }
+    }
+  };
+
+  const closeEvidenceModal = () => {
+    setEvidenceModalRelId(null);
+    setEvidenceError(null);
+  };
+
+  const selectedEvidenceType = evidenceTypes.find((et) => et.code === evidenceTypeCode);
+
   // Handle Add Evidence Submit
   const handleEvidenceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!evidenceModalRelId || !evidenceDesc.trim()) return;
+    setEvidenceError(null);
+
+    if (!evidenceModalRelId) {
+      setEvidenceError('No relationship selected.');
+      return;
+    }
+    if (!evidenceTypeCode) {
+      setEvidenceError('Evidence type is required.');
+      return;
+    }
+    if (!evidenceDataClassCode) {
+      setEvidenceError('Data classification is required.');
+      return;
+    }
+    if (!evidenceDesc.trim()) {
+      setEvidenceError('Evidence description is required.');
+      return;
+    }
+    if (selectedEvidenceType?.requires_reference && !evidenceRef.trim() && !evidenceUrl.trim()) {
+      setEvidenceError('This evidence type requires a source reference or source URL.');
+      return;
+    }
 
     setIsSubmittingEvidence(true);
     setError(null);
@@ -221,16 +325,18 @@ export const RelationshipsPage: React.FC = () => {
         description: evidenceDesc.trim(),
         source_reference: evidenceRef.trim() || null,
         source_url: evidenceUrl.trim() || null,
-        data_class_code: 'internal',
+        data_class_code: evidenceDataClassCode,
       });
       setEvidenceModalRelId(null);
       setEvidenceDesc('');
       setEvidenceRef('');
       setEvidenceUrl('');
+      setEvidenceError(null);
       setSuccessMessage('Evidence attached to relationship successfully.');
-      fetchRelationships();
+      await fetchRelationships();
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to attach evidence.'));
+      const msg = extractErrorMessage(err, 'Failed to attach evidence.');
+      setEvidenceError(msg);
     } finally {
       setIsSubmittingEvidence(false);
     }
@@ -283,7 +389,11 @@ export const RelationshipsPage: React.FC = () => {
           </label>
           <select
             value={selectedEventId}
-            onChange={(e) => setSelectedEventId(e.target.value)}
+            onChange={(e) => {
+              const nextId = e.target.value;
+              setSelectedEventId(nextId);
+              setSearchParams(nextId ? { event_id: nextId } : {}, { replace: true });
+            }}
             className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white text-slate-800 focus:border-slate-500 focus:outline-none"
           >
             {eventsList.map((e) => (
@@ -407,7 +517,7 @@ export const RelationshipsPage: React.FC = () => {
                         </td>
                         <td className="px-5 py-3.5 text-right space-x-2">
                           <button
-                            onClick={() => setEvidenceModalRelId(rel.relationship_id)}
+                            onClick={() => openEvidenceModal(rel.relationship_id)}
                             className="font-medium text-teal-700 hover:underline"
                             title="Attach supporting evidence"
                           >
@@ -697,33 +807,83 @@ export const RelationshipsPage: React.FC = () => {
       {/* Modal: Add Evidence to Relationship */}
       <Modal
         isOpen={evidenceModalRelId !== null}
-        onClose={() => setEvidenceModalRelId(null)}
+        onClose={closeEvidenceModal}
         title="Attach Evidence to Relationship"
         description="Upload provenance reference, CCTV ID, sensor log, or witness statement."
       >
         <form onSubmit={handleEvidenceSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Evidence Type *
-            </label>
-            <select
-              value={evidenceTypeCode}
-              onChange={(e) => setEvidenceTypeCode(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
-            >
-              {evidenceTypes.map((et) => (
-                <option key={et.code} value={et.code}>
-                  {et.display_name}
-                </option>
-              ))}
-            </select>
+          {evidenceError && (
+            <Alert
+              type="error"
+              title="Evidence Submission Failed"
+              message={evidenceError}
+              onClose={() => setEvidenceError(null)}
+            />
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="relationship-evidence-type"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
+                Evidence Type *
+              </label>
+              <select
+                id="relationship-evidence-type"
+                required
+                value={evidenceTypeCode}
+                onChange={(e) => setEvidenceTypeCode(e.target.value)}
+                disabled={evidenceTypes.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
+              >
+                {evidenceTypes.length === 0 && (
+                  <option value="">Loading evidence types...</option>
+                )}
+                {evidenceTypes.map((et) => (
+                  <option key={et.code} value={et.code}>
+                    {et.display_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="relationship-evidence-data-class"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
+                Data Classification *
+              </label>
+              <select
+                id="relationship-evidence-data-class"
+                required
+                value={evidenceDataClassCode}
+                onChange={(e) => setEvidenceDataClassCode(e.target.value)}
+                disabled={dataClasses.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
+              >
+                {dataClasses.length === 0 && (
+                  <option value="">Loading classifications...</option>
+                )}
+                {dataClasses.map((dc) => (
+                  <option key={dc.code} value={dc.code}>
+                    {dc.display_name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label
+              htmlFor="relationship-evidence-description"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+            >
               Evidence Description *
             </label>
             <textarea
+              id="relationship-evidence-description"
               required
               rows={3}
               value={evidenceDesc}
@@ -734,23 +894,36 @@ export const RelationshipsPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Source Reference / Document ID
+            <label
+              htmlFor="relationship-evidence-source-ref"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+            >
+              Source Reference / Document ID{selectedEvidenceType?.requires_reference ? ' *' : ''}
             </label>
             <input
+              id="relationship-evidence-source-ref"
               type="text"
               value={evidenceRef}
               onChange={(e) => setEvidenceRef(e.target.value)}
-              placeholder="e.g., Campus Police Report #892, SCADA Log Timestamp 14:22:01"
+              placeholder="e.g., DEMO-MAINT-2026-001, SCADA Log Timestamp 14:22:01"
               className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
             />
+            {selectedEvidenceType?.requires_reference && (
+              <p className="mt-1 text-[11px] text-slate-500">
+                Required for this evidence type unless a Source URL is provided.
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label
+              htmlFor="relationship-evidence-source-url"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+            >
               Source URL (Optional)
             </label>
             <input
+              id="relationship-evidence-source-url"
               type="url"
               value={evidenceUrl}
               onChange={(e) => setEvidenceUrl(e.target.value)}
@@ -764,11 +937,16 @@ export const RelationshipsPage: React.FC = () => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setEvidenceModalRelId(null)}
+              onClick={closeEvidenceModal}
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" isLoading={isSubmittingEvidence}>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={isSubmittingEvidence}
+              disabled={!evidenceTypeCode || !evidenceDataClassCode}
+            >
               Attach Evidence
             </Button>
           </div>

@@ -105,3 +105,74 @@ def test_self_relationship_rejected_by_schema(auth_client, monkeypatch):
         },
     )
     assert response.status_code == 409
+
+
+def test_add_evidence_with_maintenance_ticket_and_data_classes_reference(auth_client, monkeypatch):
+    from app.api.v1 import reference as reference_router
+    from app.errors.exceptions import AppError
+
+    rel_id = uuid4()
+    evidence = EvidenceRead(
+        evidence_id=uuid4(),
+        relationship_id=rel_id,
+        evidence_type_code="maintenance_ticket",
+        description=(
+            "Synthetic maintenance ticket documenting an electrical supply inspection "
+            "following the Engineering Block power interruption."
+        ),
+        source_reference="DEMO-MAINT-2026-001",
+        source_url=None,
+        recorded_by=uuid4(),
+        recorded_at=datetime(2026, 11, 10, 12, 0, tzinfo=timezone.utc),
+        data_class_code="synthetic",
+    )
+
+    monkeypatch.setattr(
+        reference_router,
+        "lookup",
+        AsyncMock(
+            return_value=[
+                {"code": "public", "display_name": "Public", "description": "Publicly visible", "is_active": True},
+                {"code": "synthetic", "display_name": "Synthetic", "description": "Demo/test data", "is_active": True},
+                {"code": "verified", "display_name": "Verified", "description": "Verified record", "is_active": True},
+            ]
+        ),
+    )
+
+    ref_res = auth_client.get("/api/v1/reference/data_classes")
+    assert ref_res.status_code == 200
+    assert [item["code"] for item in ref_res.json()] == ["public", "synthetic", "verified"]
+
+    captured = {}
+
+    async def fake_add_evidence(user, relationship_id, payload):
+        captured["relationship_id"] = relationship_id
+        captured["payload"] = payload.model_dump()
+        if payload.data_class_code not in {"public", "synthetic", "verified"}:
+            raise AppError("invalid_reference", "The database rejected this operation.", 409)
+        return evidence
+
+    monkeypatch.setattr(evidence_service, "add_evidence", fake_add_evidence)
+
+    valid_payload = {
+        "evidence_type_code": "maintenance_ticket",
+        "description": (
+            "Synthetic maintenance ticket documenting an electrical supply inspection "
+            "following the Engineering Block power interruption."
+        ),
+        "source_reference": "DEMO-MAINT-2026-001",
+        "source_url": None,
+        "data_class_code": "synthetic",
+    }
+    res_ok = auth_client.post(f"/api/v1/relationships/{rel_id}/evidence", json=valid_payload)
+    assert res_ok.status_code == 201
+    assert captured["relationship_id"] == rel_id
+    assert captured["payload"] == valid_payload
+    assert res_ok.json()["data_class_code"] == "synthetic"
+
+    invalid_payload = {**valid_payload, "data_class_code": "internal"}
+    res_err = auth_client.post(f"/api/v1/relationships/{rel_id}/evidence", json=invalid_payload)
+    assert res_err.status_code == 409
+    assert res_err.json()["error"]["code"] == "invalid_reference"
+    assert res_err.json()["error"]["message"] == "The database rejected this operation."
+

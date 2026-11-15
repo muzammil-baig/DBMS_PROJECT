@@ -11,10 +11,12 @@ import {
   EventSummary,
   ImpactRead,
   ReferenceAsset,
+  ReferenceDataClass,
   ReferenceDepartment,
   ReferenceImpactType,
   ReferenceLocation,
   ReferenceMeasurementUnit,
+  ReferenceScheduledActivity,
   ReferenceService,
 } from '../../types';
 import { extractErrorMessage } from '../../services/apiClient';
@@ -24,7 +26,15 @@ import { Modal } from '../../components/common/Modal';
 import { Alert } from '../../components/common/Alert';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState } from '../../components/common/EmptyState';
-import { formatDate } from '../../utils/formatters';
+import {
+  buildValidatedImpactPayload,
+  formatAffectedTargetName,
+  formatDate,
+  getActiveReferenceItems,
+  getDefaultDataClassCode,
+  getDefaultUnitForImpactType,
+  ImpactTargetKind,
+} from '../../utils/formatters';
 
 export const ImpactsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,10 +44,12 @@ export const ImpactsPage: React.FC = () => {
   const [impacts, setImpacts] = useState<ImpactRead[]>([]);
   const [impactTypes, setImpactTypes] = useState<ReferenceImpactType[]>([]);
   const [units, setUnits] = useState<ReferenceMeasurementUnit[]>([]);
+  const [dataClasses, setDataClasses] = useState<ReferenceDataClass[]>([]);
   const [locations, setLocations] = useState<ReferenceLocation[]>([]);
   const [assets, setAssets] = useState<ReferenceAsset[]>([]);
   const [services, setServices] = useState<ReferenceService[]>([]);
   const [departments, setDepartments] = useState<ReferenceDepartment[]>([]);
+  const [scheduledActivities, setScheduledActivities] = useState<ReferenceScheduledActivity[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,11 +60,13 @@ export const ImpactsPage: React.FC = () => {
   const [typeCode, setTypeCode] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [unitCode, setUnitCode] = useState('');
+  const [dataClassCode, setDataClassCode] = useState('');
   const [verifStatus, setVerifStatus] = useState<'verified' | 'estimated'>('verified');
   const [estimateBasis, setEstimateBasis] = useState('');
   const [objectDesc, setObjectDesc] = useState('');
-  const [targetKind, setTargetKind] = useState<'description' | 'location' | 'asset' | 'service' | 'dept'>('description');
+  const [targetKind, setTargetKind] = useState<ImpactTargetKind>('description');
   const [targetId, setTargetId] = useState('');
+  const [addModalError, setAddModalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Edit Impact Modal
@@ -62,32 +76,79 @@ export const ImpactsPage: React.FC = () => {
   const [editVerifStatus, setEditVerifStatus] = useState<'verified' | 'estimated'>('verified');
   const [editEstimateBasis, setEditEstimateBasis] = useState('');
   const [editObjectDesc, setEditObjectDesc] = useState('');
+  const [editModalError, setEditModalError] = useState<string | null>(null);
   const [isEditingSubmitting, setIsEditingSubmitting] = useState(false);
+
+  const loadReferenceData = async (forceFresh = false) => {
+    const [itRes, muRes, dcRes, locRes, astRes, srvRes, deptRes, actRes] = await Promise.allSettled([
+      referenceService.getReference<ReferenceImpactType>('impact_types', forceFresh),
+      referenceService.getReference<ReferenceMeasurementUnit>('measurement_units', forceFresh),
+      referenceService.getReference<ReferenceDataClass>('data_classes', forceFresh),
+      referenceService.getReference<ReferenceLocation>('locations', forceFresh),
+      referenceService.getReference<ReferenceAsset>('assets', forceFresh),
+      referenceService.getReference<ReferenceService>('services', forceFresh),
+      referenceService.getReference<ReferenceDepartment>('departments', forceFresh),
+      referenceService.getReference<ReferenceScheduledActivity>('scheduled_activities', forceFresh),
+    ]);
+
+    const activeTypes = itRes.status === 'fulfilled' ? getActiveReferenceItems(itRes.value) : [];
+    const activeUnits = muRes.status === 'fulfilled' ? getActiveReferenceItems(muRes.value) : [];
+    const activeDataClasses = dcRes.status === 'fulfilled' ? getActiveReferenceItems(dcRes.value) : [];
+    const activeLocations = locRes.status === 'fulfilled' ? getActiveReferenceItems(locRes.value) : [];
+    const loadedAssets = astRes.status === 'fulfilled' ? astRes.value : [];
+    const loadedServices = srvRes.status === 'fulfilled' ? srvRes.value : [];
+    const activeDepartments = deptRes.status === 'fulfilled' ? getActiveReferenceItems(deptRes.value) : [];
+    const loadedActivities = actRes.status === 'fulfilled' ? actRes.value : [];
+
+    if (itRes.status === 'fulfilled') setImpactTypes(activeTypes);
+    if (muRes.status === 'fulfilled') setUnits(activeUnits);
+    if (dcRes.status === 'fulfilled') setDataClasses(activeDataClasses);
+    if (locRes.status === 'fulfilled') setLocations(activeLocations);
+    if (astRes.status === 'fulfilled') setAssets(loadedAssets);
+    if (srvRes.status === 'fulfilled') setServices(loadedServices);
+    if (deptRes.status === 'fulfilled') setDepartments(activeDepartments);
+    if (actRes.status === 'fulfilled') setScheduledActivities(loadedActivities);
+
+    if (itRes.status === 'fulfilled' && activeTypes.length > 0) {
+      const nextType = activeTypes.some((t) => t.code === typeCode) ? typeCode : activeTypes[0].code;
+      setTypeCode(nextType);
+      if (muRes.status === 'fulfilled' && activeUnits.length > 0) {
+        setUnitCode((prev) =>
+          activeUnits.some((u) => u.code === prev)
+            ? prev
+            : getDefaultUnitForImpactType(nextType, activeTypes, activeUnits)
+        );
+      }
+    } else if (muRes.status === 'fulfilled' && activeUnits.length > 0) {
+      setUnitCode((prev) => (activeUnits.some((u) => u.code === prev) ? prev : activeUnits[0].code));
+    }
+
+    if (dcRes.status === 'fulfilled') {
+      const defaultDc = getDefaultDataClassCode(activeDataClasses);
+      if (defaultDc) {
+        setDataClassCode((prev) => (activeDataClasses.some((d) => d.code === prev) ? prev : defaultDc));
+      }
+    }
+
+    const failed = [itRes, muRes, dcRes, locRes, astRes, srvRes, deptRes, actRes].find(
+      (r) => r.status === 'rejected'
+    ) as PromiseRejectedResult | undefined;
+
+    return { failed };
+  };
 
   useEffect(() => {
     const init = async () => {
       try {
-        const [evPage, itTypes, mUnits, locs, asts, srvs, depts] = await Promise.all([
+        const [evPage, refs] = await Promise.all([
           eventService.listEvents({ page: 1, page_size: 100 }),
-          referenceService.getImpactTypes().catch(() => []),
-          referenceService.getMeasurementUnits().catch(() => []),
-          referenceService.getLocations().catch(() => []),
-          referenceService.getAssets().catch(() => []),
-          referenceService.getServices().catch(() => []),
-          referenceService.getDepartments().catch(() => []),
+          loadReferenceData(),
         ]);
 
         setEventsList(evPage.items);
-        setImpactTypes(itTypes);
-        setUnits(mUnits);
-        setLocations(locs);
-        setAssets(asts);
-        setServices(srvs);
-        setDepartments(depts);
 
-        if (itTypes.length > 0) {
-          setTypeCode(itTypes[0].code);
-          setUnitCode(itTypes[0].default_unit_code || (mUnits[0]?.code || 'count'));
+        if (refs.failed) {
+          setError(extractErrorMessage(refs.failed.reason, 'Failed to load impact reference data.'));
         }
 
         if (!selectedEventId && evPage.items.length > 0) {
@@ -122,73 +183,143 @@ export const ImpactsPage: React.FC = () => {
     }
   }, [selectedEventId]);
 
+  const handleImpactTypeChange = (nextTypeCode: string) => {
+    setTypeCode(nextTypeCode);
+    const defaultUnit = getDefaultUnitForImpactType(nextTypeCode, impactTypes, units);
+    if (defaultUnit) {
+      setUnitCode(defaultUnit);
+    }
+  };
+
+  const openAddModal = async () => {
+    setAddModalError(null);
+    setQuantity('1');
+    setEstimateBasis('');
+    setObjectDesc('');
+    setTargetId('');
+    setAddModalOpen(true);
+
+    const defaultDc = getDefaultDataClassCode(dataClasses);
+    if (defaultDc) {
+      setDataClassCode(defaultDc);
+    }
+    if (impactTypes.length > 0) {
+      const nextType = impactTypes.some((t) => t.code === typeCode) ? typeCode : impactTypes[0].code;
+      setTypeCode(nextType);
+      const defaultUnit = getDefaultUnitForImpactType(nextType, impactTypes, units);
+      if (defaultUnit) setUnitCode(defaultUnit);
+    }
+
+    if (
+      impactTypes.length === 0 ||
+      units.length === 0 ||
+      dataClasses.length === 0 ||
+      departments.length === 0
+    ) {
+      const refs = await loadReferenceData(true);
+      if (refs.failed) {
+        setAddModalError(extractErrorMessage(refs.failed.reason, 'Failed to load reference collections.'));
+      }
+    }
+  };
+
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedEventId) return;
+    setAddModalError(null);
 
-    if (verifStatus === 'estimated' && !estimateBasis.trim()) {
-      setError('An estimate basis is mandatory when verification status is estimated.');
+    if (!selectedEventId) {
+      setAddModalError('Please select a focus event before recording an impact.');
       return;
     }
 
-    const qty = parseFloat(quantity);
-    if (isNaN(qty) || qty < 0) {
-      setError('Quantity must be a valid non-negative number.');
+    const { payload, error: validationError } = buildValidatedImpactPayload({
+      impactTypeCode: typeCode,
+      unitCode,
+      dataClassCode,
+      quantity,
+      verificationStatus: verifStatus,
+      estimateBasis,
+      targetKind,
+      targetId,
+      objectDescription: objectDesc,
+      impactTypes,
+      units,
+      dataClasses,
+      locations,
+      assets,
+      services,
+      activities: scheduledActivities,
+      departments,
+    });
+
+    if (validationError || !payload) {
+      setAddModalError(validationError || 'Invalid impact form input.');
       return;
     }
 
     setIsSubmitting(true);
     setError(null);
     try {
-      await impactService.addImpact(selectedEventId, {
-        impact_type_code: typeCode,
-        quantity: qty,
-        unit_code: unitCode,
-        verification_status: verifStatus,
-        estimate_basis: verifStatus === 'estimated' ? estimateBasis.trim() : null,
-        affected_location_id: targetKind === 'location' && targetId ? targetId : null,
-        affected_asset_id: targetKind === 'asset' && targetId ? targetId : null,
-        affected_service_id: targetKind === 'service' && targetId ? targetId : null,
-        affected_department_id: targetKind === 'dept' && targetId ? targetId : null,
-        affected_object_description:
-          targetKind === 'description' && objectDesc.trim() ? objectDesc.trim() : undefined,
-        data_class_code: 'internal',
-      });
+      await impactService.addImpact(selectedEventId, payload);
 
       setAddModalOpen(false);
       setQuantity('1');
       setEstimateBasis('');
       setObjectDesc('');
+      setTargetId('');
+      setAddModalError(null);
       setSuccessMessage('Impact successfully recorded.');
-      fetchImpacts();
+      await fetchImpacts();
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to record impact.'));
+      setAddModalError(extractErrorMessage(err, 'Failed to record impact.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const openEditModal = (imp: ImpactRead) => {
+    setEditModalError(null);
     setEditModalImpact(imp);
     setEditQuantity(String(imp.quantity));
     setEditUnitCode(imp.unit_code);
-    setEditVerifStatus(imp.verification_status as any);
+    setEditVerifStatus(imp.verification_status);
     setEditEstimateBasis(imp.estimate_basis || '');
     setEditObjectDesc(imp.affected_object_description || '');
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEditModalError(null);
     if (!editModalImpact) return;
 
+    if (editVerifStatus !== 'verified' && editVerifStatus !== 'estimated') {
+      setEditModalError('Verification status must be verified or estimated.');
+      return;
+    }
     if (editVerifStatus === 'estimated' && !editEstimateBasis.trim()) {
-      setError('An estimate basis is required when verification status is estimated.');
+      setEditModalError('An estimate basis is required when verification status is estimated.');
+      return;
+    }
+    if (editUnitCode && !units.some((u) => u.code === editUnitCode)) {
+      setEditModalError('Selected measurement unit does not exist or is inactive.');
       return;
     }
 
-    const qty = parseFloat(editQuantity);
-    if (isNaN(qty) || qty < 0) {
-      setError('Quantity must be a non-negative number.');
+    const qty = Number(editQuantity.trim());
+    if (!editQuantity.trim() || !Number.isFinite(qty) || qty < 0) {
+      setEditModalError('Quantity must be a valid non-negative number.');
+      return;
+    }
+
+    const hasStructuredTarget = Boolean(
+      editModalImpact.affected_location_id ||
+        editModalImpact.affected_asset_id ||
+        editModalImpact.affected_service_id ||
+        editModalImpact.affected_activity_id ||
+        editModalImpact.affected_department_id
+    );
+    if (!hasStructuredTarget && !editObjectDesc.trim()) {
+      setEditModalError('An object description is required when no structured entity is attached.');
       return;
     }
 
@@ -204,10 +335,11 @@ export const ImpactsPage: React.FC = () => {
       });
 
       setEditModalImpact(null);
+      setEditModalError(null);
       setSuccessMessage('Impact successfully updated.');
-      fetchImpacts();
+      await fetchImpacts();
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to update impact.'));
+      setEditModalError(extractErrorMessage(err, 'Failed to update impact.'));
     } finally {
       setIsEditingSubmitting(false);
     }
@@ -228,7 +360,7 @@ export const ImpactsPage: React.FC = () => {
 
         <Button
           size="sm"
-          onClick={() => setAddModalOpen(true)}
+          onClick={openAddModal}
           leftIcon={<Plus className="h-3.5 w-3.5" />}
         >
           Record Impact
@@ -310,6 +442,7 @@ export const ImpactsPage: React.FC = () => {
                   <th className="px-5 py-3 font-medium">Quantity</th>
                   <th className="px-5 py-3 font-medium">Unit</th>
                   <th className="px-5 py-3 font-medium">Verification</th>
+                  <th className="px-5 py-3 font-medium">Classification</th>
                   <th className="px-5 py-3 font-medium">Affected Target / Description</th>
                   <th className="px-5 py-3 font-medium">Estimate Basis</th>
                   <th className="px-5 py-3 font-medium">Recorded Date</th>
@@ -318,55 +451,72 @@ export const ImpactsPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {impacts.length > 0 ? (
-                  impacts.map((imp) => (
-                    <tr key={imp.impact_id} className="hover:bg-slate-50/80">
-                      <td className="px-5 py-3.5 font-semibold text-slate-900">
-                        {imp.impact_type_name || imp.impact_type_code}
-                      </td>
-                      <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
-                        {imp.quantity}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-600">
-                        {imp.unit_name || imp.unit_code}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
-                            imp.verification_status === 'verified'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}
-                        >
-                          {imp.verification_status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-700 max-w-[200px] truncate">
-                        {imp.affected_object_description || 'General Event Target'}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-500 max-w-[200px] truncate">
-                        {imp.estimate_basis || '—'}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-500 font-tabular">
-                        {formatDate(imp.recorded_at)}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => openEditModal(imp)}
-                          className="font-semibold text-blue-600 hover:text-blue-800"
-                        >
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  impacts.map((imp) => {
+                    const target = formatAffectedTargetName(imp, {
+                      locations,
+                      assets,
+                      services,
+                      activities: scheduledActivities,
+                      departments,
+                    });
+                    return (
+                      <tr key={imp.impact_id} className="hover:bg-slate-50/80">
+                        <td className="px-5 py-3.5 font-semibold text-slate-900">
+                          {imp.impact_type_name || imp.impact_type_code}
+                        </td>
+                        <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
+                          {imp.quantity}
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-600">
+                          {imp.unit_name || imp.unit_code}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span
+                            className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
+                              imp.verification_status === 'verified'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}
+                          >
+                            {imp.verification_status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 uppercase font-medium text-slate-600">
+                          {imp.data_class_code}
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-700 max-w-[240px]">
+                          <div className="truncate font-medium text-slate-800" title={target.name}>
+                            {target.name}
+                          </div>
+                          {target.kindLabel && (
+                            <div className="text-[11px] text-slate-400">{target.kindLabel}</div>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-500 max-w-[200px] truncate" title={imp.estimate_basis || ''}>
+                          {imp.estimate_basis || '—'}
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-500 font-tabular">
+                          {formatDate(imp.recorded_at)}
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <button
+                            onClick={() => openEditModal(imp)}
+                            className="font-semibold text-blue-600 hover:text-blue-800"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-5 py-12">
+                    <td colSpan={9} className="px-5 py-12">
                       <EmptyState
                         title="No Impacts Recorded"
                         description="No damages or quantifiable disruptions have been recorded for this event."
                         actionLabel="Add Impact"
-                        onAction={() => setAddModalOpen(true)}
+                        onAction={openAddModal}
                       />
                     </td>
                   </tr>
@@ -380,21 +530,42 @@ export const ImpactsPage: React.FC = () => {
       {/* Modal: Record Impact */}
       <Modal
         isOpen={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
+        onClose={() => {
+          setAddModalOpen(false);
+          setAddModalError(null);
+        }}
         title="Record Incident Impact"
         description="Quantify financial loss, downtime, injured persons, or damaged property."
       >
         <form onSubmit={handleCreateSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          {addModalError && (
+            <Alert
+              type="error"
+              title="Impact Submission Failed"
+              message={addModalError}
+              onClose={() => setAddModalError(null)}
+            />
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="impact-page-type"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Impact Type *
               </label>
               <select
+                id="impact-page-type"
+                required
                 value={typeCode}
-                onChange={(e) => setTypeCode(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                onChange={(e) => handleImpactTypeChange(e.target.value)}
+                disabled={impactTypes.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
               >
+                {impactTypes.length === 0 && (
+                  <option value="">Loading impact types...</option>
+                )}
                 {impactTypes.map((it) => (
                   <option key={it.code} value={it.code}>
                     {it.display_name}
@@ -404,14 +575,23 @@ export const ImpactsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="impact-page-unit"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Measurement Unit *
               </label>
               <select
+                id="impact-page-unit"
+                required
                 value={unitCode}
                 onChange={(e) => setUnitCode(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                disabled={units.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
               >
+                {units.length === 0 && (
+                  <option value="">Loading units...</option>
+                )}
                 {units.map((u) => (
                   <option key={u.code} value={u.code}>
                     {u.display_name} ({u.symbol || u.code})
@@ -421,12 +601,16 @@ export const ImpactsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="impact-page-quantity"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Quantity *
               </label>
               <input
+                id="impact-page-quantity"
                 type="number"
                 step="any"
                 min="0"
@@ -438,37 +622,71 @@ export const ImpactsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="impact-page-verification"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Verification Status *
               </label>
               <select
+                id="impact-page-verification"
+                required
                 value={verifStatus}
-                onChange={(e) => setVerifStatus(e.target.value as any)}
+                onChange={(e) => setVerifStatus(e.target.value as 'verified' | 'estimated')}
                 className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
               >
                 <option value="verified">Verified (Official documentation)</option>
                 <option value="estimated">Estimated (Preliminary assessment)</option>
               </select>
             </div>
+
+            <div>
+              <label
+                htmlFor="impact-page-data-class"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
+                Data Classification *
+              </label>
+              <select
+                id="impact-page-data-class"
+                required
+                value={dataClassCode}
+                onChange={(e) => setDataClassCode(e.target.value)}
+                disabled={dataClasses.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
+              >
+                {dataClasses.length === 0 && (
+                  <option value="">Loading classifications...</option>
+                )}
+                {dataClasses.map((dc) => (
+                  <option key={dc.code} value={dc.code}>
+                    {dc.display_name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Affected Entity Type
+              Affected Entity Type *
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
-              {[
-                { id: 'description', label: 'Free Text' },
-                { id: 'location', label: 'Location' },
-                { id: 'asset', label: 'Asset' },
-                { id: 'service', label: 'Service' },
-                { id: 'dept', label: 'Department' },
-              ].map((t) => (
+              {(
+                [
+                  { id: 'description', label: 'Free Text' },
+                  { id: 'location', label: 'Location' },
+                  { id: 'asset', label: 'Asset' },
+                  { id: 'service', label: 'Service' },
+                  { id: 'activity', label: 'Scheduled Activity' },
+                  { id: 'dept', label: 'Department' },
+                ] as { id: ImpactTargetKind; label: string }[]
+              ).map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => {
-                    setTargetKind(t.id as any);
+                    setTargetKind(t.id);
                     setTargetId('');
                   }}
                   className={`rounded-md px-2.5 py-1 text-xs font-medium border ${
@@ -484,7 +702,9 @@ export const ImpactsPage: React.FC = () => {
 
             {targetKind === 'description' && (
               <input
+                id="impact-page-object-desc"
                 type="text"
+                required
                 value={objectDesc}
                 onChange={(e) => setObjectDesc(e.target.value)}
                 placeholder="e.g., Computer Science Lab Equipment, 1st Floor Hallway"
@@ -494,6 +714,8 @@ export const ImpactsPage: React.FC = () => {
 
             {targetKind === 'location' && (
               <select
+                id="impact-page-target-location"
+                required
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
@@ -509,6 +731,8 @@ export const ImpactsPage: React.FC = () => {
 
             {targetKind === 'asset' && (
               <select
+                id="impact-page-target-asset"
+                required
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
@@ -524,6 +748,8 @@ export const ImpactsPage: React.FC = () => {
 
             {targetKind === 'service' && (
               <select
+                id="impact-page-target-service"
+                required
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
@@ -537,8 +763,27 @@ export const ImpactsPage: React.FC = () => {
               </select>
             )}
 
+            {targetKind === 'activity' && (
+              <select
+                id="impact-page-target-activity"
+                required
+                value={targetId}
+                onChange={(e) => setTargetId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+              >
+                <option value="">-- Choose Scheduled Activity --</option>
+                {scheduledActivities.map((act) => (
+                  <option key={act.scheduled_activity_id} value={act.scheduled_activity_id}>
+                    {act.title} ({act.activity_code})
+                  </option>
+                ))}
+              </select>
+            )}
+
             {targetKind === 'dept' && (
               <select
+                id="impact-page-target-dept"
+                required
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
@@ -555,10 +800,14 @@ export const ImpactsPage: React.FC = () => {
 
           {verifStatus === 'estimated' && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="impact-page-estimate-basis"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Estimate Basis *
               </label>
               <input
+                id="impact-page-estimate-basis"
                 type="text"
                 required
                 value={estimateBasis}
@@ -574,11 +823,19 @@ export const ImpactsPage: React.FC = () => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setAddModalOpen(false)}
+              onClick={() => {
+                setAddModalOpen(false);
+                setAddModalError(null);
+              }}
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" isLoading={isSubmitting}>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={isSubmitting}
+              disabled={!typeCode || !unitCode || !dataClassCode}
+            >
               Save Impact
             </Button>
           </div>
@@ -588,11 +845,23 @@ export const ImpactsPage: React.FC = () => {
       {/* Modal: Edit Impact */}
       <Modal
         isOpen={editModalImpact !== null}
-        onClose={() => setEditModalImpact(null)}
+        onClose={() => {
+          setEditModalImpact(null);
+          setEditModalError(null);
+        }}
         title="Update Impact Record"
         description="Modify quantity, unit, or verification parameters."
       >
         <form onSubmit={handleEditSubmit} className="space-y-4">
+          {editModalError && (
+            <Alert
+              type="error"
+              title="Update Failed"
+              message={editModalError}
+              onClose={() => setEditModalError(null)}
+            />
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -633,7 +902,7 @@ export const ImpactsPage: React.FC = () => {
             </label>
             <select
               value={editVerifStatus}
-              onChange={(e) => setEditVerifStatus(e.target.value as any)}
+              onChange={(e) => setEditVerifStatus(e.target.value as 'verified' | 'estimated')}
               className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
             >
               <option value="verified">Verified</option>
@@ -673,7 +942,10 @@ export const ImpactsPage: React.FC = () => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setEditModalImpact(null)}
+              onClick={() => {
+                setEditModalImpact(null);
+                setEditModalError(null);
+              }}
             >
               Cancel
             </Button>

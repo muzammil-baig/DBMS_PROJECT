@@ -27,6 +27,15 @@ import {
   EventStatusHistoryItem,
   ImpactRead,
   InvestigationResult,
+  ReferenceAsset,
+  ReferenceDataClass,
+  ReferenceDepartment,
+  ReferenceEvidenceType,
+  ReferenceImpactType,
+  ReferenceLocation,
+  ReferenceMeasurementUnit,
+  ReferenceScheduledActivity,
+  ReferenceService,
   ReferenceStatusTransition,
   RelationshipRead,
 } from '../../types';
@@ -39,10 +48,16 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Breadcrumbs } from '../../components/layout/Breadcrumbs';
 import {
+  buildValidatedImpactPayload,
+  formatAffectedTargetName,
   formatConfidence,
   formatDate,
+  getActiveReferenceItems,
+  getDefaultDataClassCode,
+  getDefaultUnitForImpactType,
   getSeverityBadgeProps,
   getStatusBadgeProps,
+  ImpactTargetKind,
 } from '../../utils/formatters';
 
 export const EventDetailPage: React.FC = () => {
@@ -79,20 +94,32 @@ export const EventDetailPage: React.FC = () => {
   const [impactTypeCode, setImpactTypeCode] = useState('');
   const [impactQty, setImpactQty] = useState('1');
   const [impactUnitCode, setImpactUnitCode] = useState('');
+  const [impactDataClassCode, setImpactDataClassCode] = useState('');
   const [impactVerifStatus, setImpactVerifStatus] = useState<'verified' | 'estimated'>('verified');
   const [impactEstimateBasis, setImpactEstimateBasis] = useState('');
   const [impactObjectDesc, setImpactObjectDesc] = useState('');
-  const [impactTypes, setImpactTypes] = useState<any[]>([]);
-  const [measurementUnits, setMeasurementUnits] = useState<any[]>([]);
+  const [impactTargetKind, setImpactTargetKind] = useState<ImpactTargetKind>('description');
+  const [impactTargetId, setImpactTargetId] = useState('');
+  const [impactError, setImpactError] = useState<string | null>(null);
+  const [impactTypes, setImpactTypes] = useState<ReferenceImpactType[]>([]);
+  const [measurementUnits, setMeasurementUnits] = useState<ReferenceMeasurementUnit[]>([]);
+  const [locations, setLocations] = useState<ReferenceLocation[]>([]);
+  const [assets, setAssets] = useState<ReferenceAsset[]>([]);
+  const [services, setServices] = useState<ReferenceService[]>([]);
+  const [departments, setDepartments] = useState<ReferenceDepartment[]>([]);
+  const [scheduledActivities, setScheduledActivities] = useState<ReferenceScheduledActivity[]>([]);
   const [isSubmittingImpact, setIsSubmittingImpact] = useState(false);
 
   // Add Evidence Modal State (attached to a relationship)
   const [evidenceModalRelId, setEvidenceModalRelId] = useState<string | null>(null);
   const [evidenceTypeCode, setEvidenceTypeCode] = useState('');
+  const [evidenceDataClassCode, setEvidenceDataClassCode] = useState('');
   const [evidenceDesc, setEvidenceDesc] = useState('');
   const [evidenceRef, setEvidenceRef] = useState('');
   const [evidenceUrl, setEvidenceUrl] = useState('');
-  const [evidenceTypes, setEvidenceTypes] = useState<any[]>([]);
+  const [evidenceTypes, setEvidenceTypes] = useState<ReferenceEvidenceType[]>([]);
+  const [dataClasses, setDataClasses] = useState<ReferenceDataClass[]>([]);
+  const [evidenceError, setEvidenceError] = useState<string | null>(null);
   const [isSubmittingEvidence, setIsSubmittingEvidence] = useState(false);
 
   // Relationship Confirm / Downgrade Modal State
@@ -103,6 +130,71 @@ export const EventDetailPage: React.FC = () => {
   const [relActionReason, setRelActionReason] = useState('');
   const [relDowngradeStatus, setRelDowngradeStatus] = useState<'suspected' | 'rejected_unrelated'>('suspected');
   const [isSubmittingRelAction, setIsSubmittingRelAction] = useState(false);
+
+  const loadEvidenceReferences = async (forceFresh = false) => {
+    const [evRes, dcRes, itRes, muRes, locRes, astRes, srvRes, deptRes, actRes] = await Promise.allSettled([
+      referenceService.getReference<ReferenceEvidenceType>('evidence_types', forceFresh),
+      referenceService.getReference<ReferenceDataClass>('data_classes', forceFresh),
+      referenceService.getReference<ReferenceImpactType>('impact_types', forceFresh),
+      referenceService.getReference<ReferenceMeasurementUnit>('measurement_units', forceFresh),
+      referenceService.getReference<ReferenceLocation>('locations', forceFresh),
+      referenceService.getReference<ReferenceAsset>('assets', forceFresh),
+      referenceService.getReference<ReferenceService>('services', forceFresh),
+      referenceService.getReference<ReferenceDepartment>('departments', forceFresh),
+      referenceService.getReference<ReferenceScheduledActivity>('scheduled_activities', forceFresh),
+    ]);
+
+    if (evRes.status === 'fulfilled') {
+      const activeEvTypes = getActiveReferenceItems(evRes.value);
+      setEvidenceTypes(activeEvTypes);
+      if (activeEvTypes.length > 0) {
+        setEvidenceTypeCode((prev) =>
+          activeEvTypes.some((t) => t.code === prev) ? prev : activeEvTypes[0].code
+        );
+      }
+    }
+
+    if (dcRes.status === 'fulfilled') {
+      const activeDataClasses = getActiveReferenceItems(dcRes.value);
+      setDataClasses(activeDataClasses);
+      const defaultDc = getDefaultDataClassCode(activeDataClasses);
+      if (defaultDc) {
+        setEvidenceDataClassCode((prev) =>
+          activeDataClasses.some((d) => d.code === prev) ? prev : defaultDc
+        );
+        setImpactDataClassCode((prev) =>
+          activeDataClasses.some((d) => d.code === prev) ? prev : defaultDc
+        );
+      }
+    }
+
+    const activeTypes = itRes.status === 'fulfilled' ? getActiveReferenceItems(itRes.value) : [];
+    const activeUnits = muRes.status === 'fulfilled' ? getActiveReferenceItems(muRes.value) : [];
+
+    if (itRes.status === 'fulfilled') setImpactTypes(activeTypes);
+    if (muRes.status === 'fulfilled') setMeasurementUnits(activeUnits);
+    if (locRes.status === 'fulfilled') setLocations(getActiveReferenceItems(locRes.value));
+    if (astRes.status === 'fulfilled') setAssets(astRes.value);
+    if (srvRes.status === 'fulfilled') setServices(srvRes.value);
+    if (deptRes.status === 'fulfilled') setDepartments(getActiveReferenceItems(deptRes.value));
+    if (actRes.status === 'fulfilled') setScheduledActivities(actRes.value);
+
+    if (itRes.status === 'fulfilled' && activeTypes.length > 0) {
+      const nextType = activeTypes.some((t) => t.code === impactTypeCode) ? impactTypeCode : activeTypes[0].code;
+      setImpactTypeCode(nextType);
+      if (muRes.status === 'fulfilled' && activeUnits.length > 0) {
+        setImpactUnitCode((prev) =>
+          activeUnits.some((u) => u.code === prev)
+            ? prev
+            : getDefaultUnitForImpactType(nextType, activeTypes, activeUnits)
+        );
+      }
+    } else if (muRes.status === 'fulfilled' && activeUnits.length > 0) {
+      setImpactUnitCode((prev) => (activeUnits.some((u) => u.code === prev) ? prev : activeUnits[0].code));
+    }
+
+    return { evRes, dcRes, itRes, muRes, deptRes };
+  };
 
   const loadAllEventData = async () => {
     if (!eventId) return;
@@ -133,21 +225,7 @@ export const EventDetailPage: React.FC = () => {
       }
 
       // Pre-load reference lists for impacts and evidence
-      const [impTypes, units, evTypes] = await Promise.all([
-        referenceService.getImpactTypes().catch(() => []),
-        referenceService.getMeasurementUnits().catch(() => []),
-        referenceService.getEvidenceTypes().catch(() => []),
-      ]);
-      setImpactTypes(impTypes);
-      setMeasurementUnits(units);
-      setEvidenceTypes(evTypes);
-      if (impTypes.length > 0) {
-        setImpactTypeCode(impTypes[0].code);
-        setImpactUnitCode(impTypes[0].default_unit_code || (units[0]?.code || 'count'));
-      }
-      if (evTypes.length > 0) {
-        setEvidenceTypeCode(evTypes[0].code);
-      }
+      await loadEvidenceReferences();
 
       // Root causes for investigation
       investigationService
@@ -213,45 +291,153 @@ export const EventDetailPage: React.FC = () => {
     }
   };
 
+  const handleImpactTypeChange = (nextTypeCode: string) => {
+    setImpactTypeCode(nextTypeCode);
+    const defaultUnit = getDefaultUnitForImpactType(nextTypeCode, impactTypes, measurementUnits);
+    if (defaultUnit) {
+      setImpactUnitCode(defaultUnit);
+    }
+  };
+
+  const openAddImpactModal = async () => {
+    setImpactError(null);
+    setImpactQty('1');
+    setImpactEstimateBasis('');
+    setImpactObjectDesc('');
+    setImpactTargetId('');
+    const defaultDc = getDefaultDataClassCode(dataClasses);
+    if (defaultDc) {
+      setImpactDataClassCode(defaultDc);
+    }
+    if (impactTypes.length > 0) {
+      const nextType = impactTypes.some((t) => t.code === impactTypeCode)
+        ? impactTypeCode
+        : impactTypes[0].code;
+      setImpactTypeCode(nextType);
+      const defaultUnit = getDefaultUnitForImpactType(nextType, impactTypes, measurementUnits);
+      if (defaultUnit) setImpactUnitCode(defaultUnit);
+    }
+    setAddImpactOpen(true);
+
+    if (
+      impactTypes.length === 0 ||
+      measurementUnits.length === 0 ||
+      dataClasses.length === 0 ||
+      departments.length === 0
+    ) {
+      const refs = await loadEvidenceReferences(true);
+      const failed = [refs.itRes, refs.muRes, refs.dcRes, refs.deptRes].find(
+        (r) => r.status === 'rejected'
+      ) as PromiseRejectedResult | undefined;
+      if (failed) {
+        setImpactError(extractErrorMessage(failed.reason, 'Failed to load impact reference data.'));
+      }
+    }
+  };
+
   // Handle Add Impact
   const handleAddImpactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setImpactError(null);
     if (!eventId) return;
 
-    if (impactVerifStatus === 'estimated' && !impactEstimateBasis.trim()) {
-      setError('An estimate basis is mandatory when verification status is estimated.');
+    const { payload, error: validationError } = buildValidatedImpactPayload({
+      impactTypeCode,
+      unitCode: impactUnitCode,
+      dataClassCode: impactDataClassCode,
+      quantity: impactQty,
+      verificationStatus: impactVerifStatus,
+      estimateBasis: impactEstimateBasis,
+      targetKind: impactTargetKind,
+      targetId: impactTargetId,
+      objectDescription: impactObjectDesc,
+      impactTypes,
+      units: measurementUnits,
+      dataClasses,
+      locations,
+      assets,
+      services,
+      activities: scheduledActivities,
+      departments,
+    });
+
+    if (validationError || !payload) {
+      setImpactError(validationError || 'Invalid impact form input.');
       return;
     }
 
     setIsSubmittingImpact(true);
     setError(null);
     try {
-      await impactService.addImpact(eventId, {
-        impact_type_code: impactTypeCode,
-        quantity: parseFloat(impactQty) || 0,
-        unit_code: impactUnitCode,
-        verification_status: impactVerifStatus,
-        estimate_basis: impactVerifStatus === 'estimated' ? impactEstimateBasis.trim() : null,
-        affected_object_description: impactObjectDesc.trim() || undefined,
-        data_class_code: event?.data_class_code || 'internal',
-      });
+      await impactService.addImpact(eventId, payload);
       setAddImpactOpen(false);
       setImpactQty('1');
       setImpactEstimateBasis('');
       setImpactObjectDesc('');
+      setImpactTargetId('');
+      setImpactError(null);
       setSuccessMessage('Impact record added successfully.');
-      loadAllEventData();
+      await loadAllEventData();
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to record impact.'));
+      setImpactError(extractErrorMessage(err, 'Failed to record impact.'));
     } finally {
       setIsSubmittingImpact(false);
     }
   };
 
+  const openEvidenceModal = async (relId: string) => {
+    setEvidenceError(null);
+    setEvidenceDesc('');
+    setEvidenceRef('');
+    setEvidenceUrl('');
+    const defaultDc = getDefaultDataClassCode(dataClasses);
+    if (defaultDc) {
+      setEvidenceDataClassCode(defaultDc);
+    }
+    setEvidenceModalRelId(relId);
+
+    if (dataClasses.length === 0 || evidenceTypes.length === 0) {
+      const refs = await loadEvidenceReferences(true);
+      if (refs.dcRes.status === 'rejected') {
+        setEvidenceError(extractErrorMessage(refs.dcRes.reason, 'Failed to load data classifications.'));
+      } else if (refs.evRes.status === 'rejected') {
+        setEvidenceError(extractErrorMessage(refs.evRes.reason, 'Failed to load evidence types.'));
+      }
+    }
+  };
+
+  const closeEvidenceModal = () => {
+    setEvidenceModalRelId(null);
+    setEvidenceError(null);
+  };
+
+  const selectedEvidenceType = evidenceTypes.find((et) => et.code === evidenceTypeCode);
+
   // Handle Add Evidence to Relationship
   const handleAddEvidenceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!evidenceModalRelId || !evidenceDesc.trim()) return;
+    setEvidenceError(null);
+
+    if (!evidenceModalRelId) {
+      setEvidenceError('No relationship selected.');
+      return;
+    }
+    if (!evidenceTypeCode) {
+      setEvidenceError('Evidence type is required.');
+      return;
+    }
+    if (!evidenceDataClassCode) {
+      setEvidenceError('Data classification is required.');
+      return;
+    }
+    if (!evidenceDesc.trim()) {
+      setEvidenceError('Evidence description is required.');
+      return;
+    }
+    if (selectedEvidenceType?.requires_reference && !evidenceRef.trim() && !evidenceUrl.trim()) {
+      setEvidenceError('This evidence type requires a source reference or source URL.');
+      return;
+    }
 
     setIsSubmittingEvidence(true);
     setError(null);
@@ -261,16 +447,17 @@ export const EventDetailPage: React.FC = () => {
         description: evidenceDesc.trim(),
         source_reference: evidenceRef.trim() || null,
         source_url: evidenceUrl.trim() || null,
-        data_class_code: event?.data_class_code || 'internal',
+        data_class_code: evidenceDataClassCode,
       });
       setEvidenceModalRelId(null);
       setEvidenceDesc('');
       setEvidenceRef('');
       setEvidenceUrl('');
+      setEvidenceError(null);
       setSuccessMessage('Evidence attached to relationship successfully.');
-      loadAllEventData();
+      await loadAllEventData();
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to attach evidence.'));
+      setEvidenceError(extractErrorMessage(err, 'Failed to attach evidence.'));
     } finally {
       setIsSubmittingEvidence(false);
     }
@@ -665,7 +852,7 @@ export const EventDetailPage: React.FC = () => {
                           </td>
                           <td className="px-5 py-3.5 text-right space-x-2">
                             <button
-                              onClick={() => setEvidenceModalRelId(rel.relationship_id)}
+                              onClick={() => openEvidenceModal(rel.relationship_id)}
                               className="text-xs font-medium text-teal-700 hover:text-teal-900"
                             >
                               + Evidence
@@ -728,7 +915,7 @@ export const EventDetailPage: React.FC = () => {
             </div>
             <Button
               size="sm"
-              onClick={() => setAddImpactOpen(true)}
+              onClick={openAddImpactModal}
               leftIcon={<Plus className="h-3.5 w-3.5" />}
             >
               Add Impact
@@ -744,6 +931,7 @@ export const EventDetailPage: React.FC = () => {
                     <th className="px-5 py-3 font-medium">Quantity</th>
                     <th className="px-5 py-3 font-medium">Unit</th>
                     <th className="px-5 py-3 font-medium">Verification Status</th>
+                    <th className="px-5 py-3 font-medium">Classification</th>
                     <th className="px-5 py-3 font-medium">Affected Object / Description</th>
                     <th className="px-5 py-3 font-medium">Estimate Basis</th>
                     <th className="px-5 py-3 font-medium">Recorded At</th>
@@ -751,42 +939,59 @@ export const EventDetailPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
                   {impacts.length > 0 ? (
-                    impacts.map((imp) => (
-                      <tr key={imp.impact_id} className="hover:bg-slate-50/80">
-                        <td className="px-5 py-3.5 font-medium text-slate-900">
-                          {imp.impact_type_name || imp.impact_type_code}
-                        </td>
-                        <td className="px-5 py-3.5 font-mono font-semibold text-slate-900">
-                          {imp.quantity}
-                        </td>
-                        <td className="px-5 py-3.5 text-slate-600">
-                          {imp.unit_name || imp.unit_code}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span
-                            className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
-                              imp.verification_status === 'verified'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}
-                          >
-                            {imp.verification_status}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5 text-slate-600 max-w-[200px] truncate">
-                          {imp.affected_object_description || 'Direct Incident Target'}
-                        </td>
-                        <td className="px-5 py-3.5 text-slate-500 max-w-[200px] truncate">
-                          {imp.estimate_basis || '—'}
-                        </td>
-                        <td className="px-5 py-3.5 text-slate-500 font-tabular">
-                          {formatDate(imp.recorded_at)}
-                        </td>
-                      </tr>
-                    ))
+                    impacts.map((imp) => {
+                      const target = formatAffectedTargetName(imp, {
+                        locations,
+                        assets,
+                        services,
+                        activities: scheduledActivities,
+                        departments,
+                      });
+                      return (
+                        <tr key={imp.impact_id} className="hover:bg-slate-50/80">
+                          <td className="px-5 py-3.5 font-medium text-slate-900">
+                            {imp.impact_type_name || imp.impact_type_code}
+                          </td>
+                          <td className="px-5 py-3.5 font-mono font-semibold text-slate-900">
+                            {imp.quantity}
+                          </td>
+                          <td className="px-5 py-3.5 text-slate-600">
+                            {imp.unit_name || imp.unit_code}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span
+                              className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
+                                imp.verification_status === 'verified'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {imp.verification_status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 uppercase font-medium text-slate-600">
+                            {imp.data_class_code}
+                          </td>
+                          <td className="px-5 py-3.5 text-slate-600 max-w-[240px]">
+                            <div className="truncate font-medium text-slate-800" title={target.name}>
+                              {target.name}
+                            </div>
+                            {target.kindLabel && (
+                              <div className="text-[11px] text-slate-400">{target.kindLabel}</div>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5 text-slate-500 max-w-[200px] truncate" title={imp.estimate_basis || ''}>
+                            {imp.estimate_basis || '—'}
+                          </td>
+                          <td className="px-5 py-3.5 text-slate-500 font-tabular">
+                            {formatDate(imp.recorded_at)}
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan={7} className="px-5 py-8 text-center text-slate-400">
+                      <td colSpan={8} className="px-5 py-8 text-center text-slate-400">
                         No impact records linked to this incident.
                       </td>
                     </tr>
@@ -1022,21 +1227,42 @@ export const EventDetailPage: React.FC = () => {
       {/* Modal: Add Impact */}
       <Modal
         isOpen={addImpactOpen}
-        onClose={() => setAddImpactOpen(false)}
+        onClose={() => {
+          setAddImpactOpen(false);
+          setImpactError(null);
+        }}
         title="Record Incident Impact"
         description="Quantify damages, operational disruption, financial loss, or safety consequences."
       >
         <form onSubmit={handleAddImpactSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          {impactError && (
+            <Alert
+              type="error"
+              title="Impact Submission Failed"
+              message={impactError}
+              onClose={() => setImpactError(null)}
+            />
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="event-detail-impact-type"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Impact Type *
               </label>
               <select
+                id="event-detail-impact-type"
+                required
                 value={impactTypeCode}
-                onChange={(e) => setImpactTypeCode(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                onChange={(e) => handleImpactTypeChange(e.target.value)}
+                disabled={impactTypes.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
               >
+                {impactTypes.length === 0 && (
+                  <option value="">Loading impact types...</option>
+                )}
                 {impactTypes.map((it) => (
                   <option key={it.code} value={it.code}>
                     {it.display_name}
@@ -1046,14 +1272,23 @@ export const EventDetailPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="event-detail-impact-unit"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Measurement Unit *
               </label>
               <select
+                id="event-detail-impact-unit"
+                required
                 value={impactUnitCode}
                 onChange={(e) => setImpactUnitCode(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                disabled={measurementUnits.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
               >
+                {measurementUnits.length === 0 && (
+                  <option value="">Loading units...</option>
+                )}
                 {measurementUnits.map((mu) => (
                   <option key={mu.code} value={mu.code}>
                     {mu.display_name} ({mu.symbol || mu.code})
@@ -1063,12 +1298,16 @@ export const EventDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="event-detail-impact-quantity"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Quantity *
               </label>
               <input
+                id="event-detail-impact-quantity"
                 type="number"
                 step="any"
                 min="0"
@@ -1080,39 +1319,192 @@ export const EventDetailPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="event-detail-impact-verification"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Verification Status *
               </label>
               <select
+                id="event-detail-impact-verification"
+                required
                 value={impactVerifStatus}
-                onChange={(e) => setImpactVerifStatus(e.target.value as any)}
+                onChange={(e) => setImpactVerifStatus(e.target.value as 'verified' | 'estimated')}
                 className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
               >
                 <option value="verified">Verified</option>
                 <option value="estimated">Estimated</option>
               </select>
             </div>
+
+            <div>
+              <label
+                htmlFor="event-detail-impact-data-class"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
+                Data Classification *
+              </label>
+              <select
+                id="event-detail-impact-data-class"
+                required
+                value={impactDataClassCode}
+                onChange={(e) => setImpactDataClassCode(e.target.value)}
+                disabled={dataClasses.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
+              >
+                {dataClasses.length === 0 && (
+                  <option value="">Loading classifications...</option>
+                )}
+                {dataClasses.map((dc) => (
+                  <option key={dc.code} value={dc.code}>
+                    {dc.display_name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Affected Object Description
+              Affected Entity Type *
             </label>
-            <input
-              type="text"
-              value={impactObjectDesc}
-              onChange={(e) => setImpactObjectDesc(e.target.value)}
-              placeholder="e.g., Server Rack B, East Wing Classrooms"
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
-            />
+            <div className="flex flex-wrap gap-2 mb-2">
+              {(
+                [
+                  { id: 'description', label: 'Free Text' },
+                  { id: 'location', label: 'Location' },
+                  { id: 'asset', label: 'Asset' },
+                  { id: 'service', label: 'Service' },
+                  { id: 'activity', label: 'Scheduled Activity' },
+                  { id: 'dept', label: 'Department' },
+                ] as { id: ImpactTargetKind; label: string }[]
+              ).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => {
+                    setImpactTargetKind(t.id);
+                    setImpactTargetId('');
+                  }}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium border ${
+                    impactTargetKind === t.id
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {impactTargetKind === 'description' && (
+              <input
+                id="event-detail-impact-object-desc"
+                type="text"
+                required
+                value={impactObjectDesc}
+                onChange={(e) => setImpactObjectDesc(e.target.value)}
+                placeholder="e.g., Server Rack B, East Wing Classrooms"
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
+              />
+            )}
+
+            {impactTargetKind === 'location' && (
+              <select
+                id="event-detail-impact-target-location"
+                required
+                value={impactTargetId}
+                onChange={(e) => setImpactTargetId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+              >
+                <option value="">-- Choose Location --</option>
+                {locations.map((loc) => (
+                  <option key={loc.location_id} value={loc.location_id}>
+                    {loc.name} ({loc.location_code})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {impactTargetKind === 'asset' && (
+              <select
+                id="event-detail-impact-target-asset"
+                required
+                value={impactTargetId}
+                onChange={(e) => setImpactTargetId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+              >
+                <option value="">-- Choose Asset --</option>
+                {assets.map((ast) => (
+                  <option key={ast.asset_id} value={ast.asset_id}>
+                    {ast.name} ({ast.asset_code})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {impactTargetKind === 'service' && (
+              <select
+                id="event-detail-impact-target-service"
+                required
+                value={impactTargetId}
+                onChange={(e) => setImpactTargetId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+              >
+                <option value="">-- Choose Service --</option>
+                {services.map((srv) => (
+                  <option key={srv.service_id} value={srv.service_id}>
+                    {srv.name} ({srv.service_code})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {impactTargetKind === 'activity' && (
+              <select
+                id="event-detail-impact-target-activity"
+                required
+                value={impactTargetId}
+                onChange={(e) => setImpactTargetId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+              >
+                <option value="">-- Choose Scheduled Activity --</option>
+                {scheduledActivities.map((act) => (
+                  <option key={act.scheduled_activity_id} value={act.scheduled_activity_id}>
+                    {act.title} ({act.activity_code})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {impactTargetKind === 'dept' && (
+              <select
+                id="event-detail-impact-target-dept"
+                required
+                value={impactTargetId}
+                onChange={(e) => setImpactTargetId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+              >
+                <option value="">-- Choose Department --</option>
+                {departments.map((dept) => (
+                  <option key={dept.department_id} value={dept.department_id}>
+                    {dept.name} ({dept.department_code})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {impactVerifStatus === 'estimated' && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label
+                htmlFor="event-detail-impact-estimate-basis"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
                 Estimate Basis * (Required for Estimated Impacts)
               </label>
               <input
+                id="event-detail-impact-estimate-basis"
                 type="text"
                 required
                 value={impactEstimateBasis}
@@ -1128,11 +1520,19 @@ export const EventDetailPage: React.FC = () => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setAddImpactOpen(false)}
+              onClick={() => {
+                setAddImpactOpen(false);
+                setImpactError(null);
+              }}
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" isLoading={isSubmittingImpact}>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={isSubmittingImpact}
+              disabled={!impactTypeCode || !impactUnitCode || !impactDataClassCode}
+            >
               Save Impact
             </Button>
           </div>
@@ -1142,33 +1542,83 @@ export const EventDetailPage: React.FC = () => {
       {/* Modal: Add Evidence to Relationship */}
       <Modal
         isOpen={evidenceModalRelId !== null}
-        onClose={() => setEvidenceModalRelId(null)}
+        onClose={closeEvidenceModal}
         title="Attach Evidence to Relationship"
         description="Link documents, logs, sensor data, or witness testimony supporting this causal relationship."
       >
         <form onSubmit={handleAddEvidenceSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Evidence Type *
-            </label>
-            <select
-              value={evidenceTypeCode}
-              onChange={(e) => setEvidenceTypeCode(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
-            >
-              {evidenceTypes.map((et) => (
-                <option key={et.code} value={et.code}>
-                  {et.display_name}
-                </option>
-              ))}
-            </select>
+          {evidenceError && (
+            <Alert
+              type="error"
+              title="Evidence Submission Failed"
+              message={evidenceError}
+              onClose={() => setEvidenceError(null)}
+            />
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="event-detail-evidence-type"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
+                Evidence Type *
+              </label>
+              <select
+                id="event-detail-evidence-type"
+                required
+                value={evidenceTypeCode}
+                onChange={(e) => setEvidenceTypeCode(e.target.value)}
+                disabled={evidenceTypes.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
+              >
+                {evidenceTypes.length === 0 && (
+                  <option value="">Loading evidence types...</option>
+                )}
+                {evidenceTypes.map((et) => (
+                  <option key={et.code} value={et.code}>
+                    {et.display_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="event-detail-evidence-data-class"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
+                Data Classification *
+              </label>
+              <select
+                id="event-detail-evidence-data-class"
+                required
+                value={evidenceDataClassCode}
+                onChange={(e) => setEvidenceDataClassCode(e.target.value)}
+                disabled={dataClasses.length === 0}
+                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none disabled:bg-slate-100"
+              >
+                {dataClasses.length === 0 && (
+                  <option value="">Loading classifications...</option>
+                )}
+                {dataClasses.map((dc) => (
+                  <option key={dc.code} value={dc.code}>
+                    {dc.display_name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label
+              htmlFor="event-detail-evidence-description"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+            >
               Evidence Description *
             </label>
             <textarea
+              id="event-detail-evidence-description"
               required
               rows={3}
               value={evidenceDesc}
@@ -1179,23 +1629,36 @@ export const EventDetailPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Source Reference / Document ID
+            <label
+              htmlFor="event-detail-evidence-source-ref"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+            >
+              Source Reference / Document ID{selectedEvidenceType?.requires_reference ? ' *' : ''}
             </label>
             <input
+              id="event-detail-evidence-source-ref"
               type="text"
               value={evidenceRef}
               onChange={(e) => setEvidenceRef(e.target.value)}
-              placeholder="e.g., CCTV Log Archive #2026-B4, Security Dispatch Audio #12"
+              placeholder="e.g., DEMO-MAINT-2026-001, Security Dispatch Audio #12"
               className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
             />
+            {selectedEvidenceType?.requires_reference && (
+              <p className="mt-1 text-[11px] text-slate-500">
+                Required for this evidence type unless a Source URL is provided.
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label
+              htmlFor="event-detail-evidence-source-url"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+            >
               Source URL (Optional)
             </label>
             <input
+              id="event-detail-evidence-source-url"
               type="url"
               value={evidenceUrl}
               onChange={(e) => setEvidenceUrl(e.target.value)}
@@ -1209,11 +1672,16 @@ export const EventDetailPage: React.FC = () => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setEvidenceModalRelId(null)}
+              onClick={closeEvidenceModal}
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" isLoading={isSubmittingEvidence}>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={isSubmittingEvidence}
+              disabled={!evidenceTypeCode || !evidenceDataClassCode}
+            >
               Attach Evidence
             </Button>
           </div>

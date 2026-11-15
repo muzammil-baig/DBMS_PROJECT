@@ -17,7 +17,11 @@ import { extractErrorMessage } from '../../services/apiClient';
 import { Button } from '../../components/common/Button';
 import { Alert } from '../../components/common/Alert';
 import { Breadcrumbs } from '../../components/layout/Breadcrumbs';
-import { toIsoWithTz } from '../../utils/formatters';
+import {
+  getActiveReferenceItems,
+  getDefaultDataClassCode,
+  toIsoWithTz,
+} from '../../utils/formatters';
 
 export const CreateEventPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +33,7 @@ export const CreateEventPage: React.FC = () => {
   const [categoryCode, setCategoryCode] = useState('');
   const [eventTypeId, setEventTypeId] = useState('');
   const [severityCode, setSeverityCode] = useState('');
-  const [dataClassCode, setDataClassCode] = useState('internal');
+  const [dataClassCode, setDataClassCode] = useState('');
   const [startedAt, setStartedAt] = useState(new Date().toISOString().slice(0, 16));
 
   // Context Selection (at least one required by backend)
@@ -66,19 +70,26 @@ export const CreateEventPage: React.FC = () => {
           referenceService.getServices(),
           referenceService.getScheduledActivities(),
         ]);
-        setCategories(cats);
-        setAllEventTypes(evTypes);
-        setSeverities(sevs);
-        setDataClasses(dClasses);
-        setLocations(locs);
+        const activeCats = getActiveReferenceItems(cats);
+        const activeEvTypes = getActiveReferenceItems(evTypes);
+        const activeSevs = getActiveReferenceItems(sevs);
+        const activeDClasses = getActiveReferenceItems(dClasses);
+        const activeLocs = getActiveReferenceItems(locs);
+
+        setCategories(activeCats);
+        setAllEventTypes(activeEvTypes);
+        setSeverities(activeSevs);
+        setDataClasses(activeDClasses);
+        setLocations(activeLocs);
         setAssets(asts);
         setServices(srvs);
         setActivities(acts);
 
-        if (cats.length > 0) setCategoryCode(cats[0].code);
-        if (sevs.length > 0) setSeverityCode(sevs[0].code);
-        if (dClasses.length > 0) setDataClassCode(dClasses[0].code);
-        if (locs.length > 0) setLocationId(locs[0].location_id);
+        if (activeCats.length > 0) setCategoryCode(activeCats[0].code);
+        if (activeSevs.length > 0) setSeverityCode(activeSevs[0].code);
+        const defaultDc = getDefaultDataClassCode(activeDClasses);
+        if (defaultDc) setDataClassCode(defaultDc);
+        if (activeLocs.length > 0) setLocationId(activeLocs[0].location_id);
       } catch (err) {
         setErrorMessage('Failed to load system reference options from backend.');
       } finally {
@@ -127,6 +138,10 @@ export const CreateEventPage: React.FC = () => {
     }
     if (!severityCode) {
       setErrorMessage('Please select a severity level.');
+      return;
+    }
+    if (!dataClassCode) {
+      setErrorMessage('Please select a data classification.');
       return;
     }
 
