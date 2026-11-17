@@ -70,42 +70,42 @@ export function getStatusBadgeProps(statusCode: string | null | undefined): {
       return {
         label: 'Reported',
         bg: 'bg-amber-50',
-        text: 'text-amber-700',
+        text: 'text-amber-900',
         border: 'border-amber-200',
       };
     case 'under_investigation':
       return {
         label: 'Under Investigation',
-        bg: 'bg-blue-50',
-        text: 'text-blue-700',
-        border: 'border-blue-200',
+        bg: 'bg-navy-50',
+        text: 'text-navy-900',
+        border: 'border-navy-200',
       };
     case 'resolved':
       return {
         label: 'Resolved',
         bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
+        text: 'text-emerald-900',
         border: 'border-emerald-200',
       };
     case 'closed':
       return {
         label: 'Closed',
         bg: 'bg-slate-100',
-        text: 'text-slate-700',
+        text: 'text-slate-800',
         border: 'border-slate-300',
       };
     case 'void':
       return {
         label: 'Voided',
-        bg: 'bg-rose-50',
-        text: 'text-rose-700',
-        border: 'border-rose-200',
+        bg: 'bg-crimson-50',
+        text: 'text-crimson-900',
+        border: 'border-crimson-200',
       };
     default:
       return {
         label: statusCode || 'Unknown',
         bg: 'bg-slate-50',
-        text: 'text-slate-600',
+        text: 'text-slate-700',
         border: 'border-slate-200',
       };
   }
@@ -126,40 +126,40 @@ export function getSeverityBadgeProps(severityCode: string | null | undefined): 
     case 'critical':
       return {
         label: 'Critical',
-        bg: 'bg-red-50',
-        text: 'text-red-700',
-        border: 'border-red-200',
-        dotColor: 'bg-red-500',
+        bg: 'bg-crimson-50',
+        text: 'text-crimson-900',
+        border: 'border-crimson-200',
+        dotColor: 'bg-crimson-600',
       };
     case 'high':
       return {
         label: 'High',
-        bg: 'bg-orange-50',
-        text: 'text-orange-700',
-        border: 'border-orange-200',
-        dotColor: 'bg-orange-500',
+        bg: 'bg-amber-50',
+        text: 'text-amber-900',
+        border: 'border-amber-200',
+        dotColor: 'bg-amber-600',
       };
     case 'medium':
       return {
         label: 'Medium',
-        bg: 'bg-amber-50',
-        text: 'text-amber-700',
-        border: 'border-amber-200',
-        dotColor: 'bg-amber-500',
+        bg: 'bg-gold-50',
+        text: 'text-gold-900',
+        border: 'border-gold-300',
+        dotColor: 'bg-gold-600',
       };
     case 'low':
       return {
         label: 'Low',
         bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
+        text: 'text-emerald-900',
         border: 'border-emerald-200',
-        dotColor: 'bg-emerald-500',
+        dotColor: 'bg-emerald-600',
       };
     default:
       return {
         label: severityCode || 'Normal',
         bg: 'bg-slate-50',
-        text: 'text-slate-600',
+        text: 'text-slate-700',
         border: 'border-slate-200',
         dotColor: 'bg-slate-400',
       };
@@ -191,14 +191,14 @@ export function formatRoleName(roleCode: string): string {
 export function getRoleBadgeClass(roleCode: string): string {
   switch (roleCode) {
     case 'administrator':
-      return 'bg-purple-50 text-purple-700 border-purple-200';
+      return 'bg-navy-900 text-white border-navy-950 font-semibold';
     case 'event_investigator':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
+      return 'bg-navy-100 text-navy-900 border-navy-300 font-medium';
     case 'decision_maker':
-      return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      return 'bg-gold-100 text-gold-900 border-gold-300 font-medium';
     case 'event_reporter':
     default:
-      return 'bg-teal-50 text-teal-700 border-teal-200';
+      return 'bg-slate-100 text-slate-800 border-slate-300 font-medium';
   }
 }
 

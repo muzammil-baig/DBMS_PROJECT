@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any
 
@@ -22,6 +25,14 @@ class DatabaseState:
 
 
 _state = DatabaseState()
+_pool_lock: asyncio.Lock | None = None
+
+
+def _get_pool_lock() -> asyncio.Lock:
+    global _pool_lock
+    if _pool_lock is None:
+        _pool_lock = asyncio.Lock()
+    return _pool_lock
 
 
 def get_database_state() -> DatabaseState:
@@ -50,55 +61,99 @@ async def create_pool(settings: Settings | None = None) -> AsyncConnectionPool |
         logger.warning("DATABASE_URL is not set; the API will start without a database pool.")
         return None
 
-    pool = AsyncConnectionPool(
-        conninfo=url,
-        min_size=settings.db_pool_min_size,
-        max_size=max(settings.db_pool_min_size, settings.db_pool_max_size),
-        timeout=settings.db_connect_timeout_seconds,
-        open=False,
-        kwargs={
-            "autocommit": False,
-            "row_factory": dict_row,
-        },
-        configure=configure_connection,
-    )
-    try:
-        await pool.open()
-        await pool.wait(timeout=settings.db_connect_timeout_seconds)
-    except Exception as exc:
-        logger.warning("Database pool could not be opened: %s", type(exc).__name__)
-        _state.pool = None
-        _state.last_error_code = "database_unavailable"
-        _state.last_error_message = _sanitize_connect_error(exc)
-        try:
-            await pool.close()
-        except Exception:
-            pass
-        return None
+    async with _get_pool_lock():
+        if _state.pool is not None:
+            return _state.pool
 
-    _state.pool = pool
-    _state.last_error_code = None
-    _state.last_error_message = None
-    logger.info(
-        "Database pool opened min_size=%s max_size=%s",
-        settings.db_pool_min_size,
-        settings.db_pool_max_size,
-    )
+        pool = AsyncConnectionPool(
+            conninfo=url,
+            min_size=settings.db_pool_min_size,
+            max_size=max(settings.db_pool_min_size, settings.db_pool_max_size),
+            timeout=settings.db_connect_timeout_seconds,
+            open=False,
+            kwargs={
+                "autocommit": False,
+                "row_factory": dict_row,
+            },
+            configure=configure_connection,
+        )
+        try:
+            await pool.open()
+            await pool.wait(timeout=settings.db_connect_timeout_seconds)
+        except Exception as exc:
+            logger.warning("Database pool could not be opened: %s", type(exc).__name__)
+            _state.pool = None
+            _state.last_error_code = "database_unavailable"
+            _state.last_error_message = _sanitize_connect_error(exc)
+            try:
+                await pool.close()
+            except Exception:
+                pass
+            return None
+
+        _state.pool = pool
+        _state.last_error_code = None
+        _state.last_error_message = None
+        logger.info(
+            "Database pool opened min_size=%s max_size=%s",
+            settings.db_pool_min_size,
+            settings.db_pool_max_size,
+        )
+        return pool
+
+
+async def ensure_pool(settings: Settings | None = None) -> AsyncConnectionPool:
+    """Ensure the shared database pool is available, lazily reconnecting if needed."""
+    if _state.pool is not None:
+        return _state.pool
+
+    settings = settings or get_settings()
+    if not settings.database_is_configured:
+        raise DatabaseUnavailableError("DATABASE_URL is not set.")
+
+    pool = await create_pool(settings)
+    if pool is None:
+        message = _state.last_error_message or "The database is not available."
+        raise DatabaseUnavailableError(message)
     return pool
 
 
 async def close_pool() -> None:
-    if _state.pool is not None:
-        await _state.pool.close()
-        _state.pool = None
-        logger.info("Database pool closed.")
+    async with _get_pool_lock():
+        if _state.pool is not None:
+            await _state.pool.close()
+            _state.pool = None
+            logger.info("Database pool closed.")
+
+
+class ResilientPoolWrapper:
+    """Wrapper that provides pool.connection() with transparent lazy retry/recovery."""
+
+    @asynccontextmanager
+    async def connection(self, *args: Any, **kwargs: Any) -> AsyncIterator[AsyncConnection]:
+        pool = await ensure_pool()
+        async with pool.connection(*args, **kwargs) as conn:
+            yield conn
+
+    def get_stats(self) -> dict[str, Any]:
+        if _state.pool is not None and hasattr(_state.pool, "get_stats"):
+            return _state.pool.get_stats()
+        return {}
+
+    def __getattr__(self, name: str) -> Any:
+        if _state.pool is not None:
+            return getattr(_state.pool, name)
+        raise DatabaseUnavailableError(_state.last_error_message or "The database is not available.")
+
+
+_resilient_pool = ResilientPoolWrapper()
 
 
 def require_pool() -> AsyncConnectionPool:
-    if _state.pool is None:
-        message = _state.last_error_message or "The database is not available."
+    if not get_settings().database_is_configured:
+        message = _state.last_error_message or "DATABASE_URL is not set."
         raise DatabaseUnavailableError(message)
-    return _state.pool
+    return _resilient_pool  # type: ignore[return-value]
 
 
 def _sanitize_connect_error(exc: Exception) -> str:

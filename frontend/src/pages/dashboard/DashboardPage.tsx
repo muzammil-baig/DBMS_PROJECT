@@ -32,13 +32,13 @@ import {
 } from '../../utils/formatters';
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#ef4444', // red-500
-  high: '#f97316',     // orange-500
-  medium: '#f59e0b',   // amber-500
-  low: '#10b981',      // emerald-500
+  critical: '#b91c1c', // crimson-700
+  high: '#d97706',     // amber-600
+  medium: '#c59a28',   // gold-500
+  low: '#059669',      // emerald-600
 };
 
-const CATEGORY_COLORS = ['#0f172a', '#2563eb', '#0d9488', '#6366f1', '#8b5cf6', '#ec4899'];
+const CATEGORY_COLORS = ['#0b2341', '#1e3f64', '#0d9488', '#c59a28', '#475569', '#2b5c92'];
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -88,22 +88,22 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome & Context Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+      {/* Institutional Operational Console Masthead */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-teal-700">
-            <span className="h-2 w-2 rounded-full bg-teal-500" />
-            Operational Console
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gold-700">
+            <span className="h-2 w-2 rounded-full bg-gold-600" />
+            University Incident Command Console
           </div>
-          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-navy-950">
             Welcome back, {user?.display_name || 'Officer'}
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">
-            {currentDateFormatted} — Campus Incident Memory & Investigation System
+            {currentDateFormatted} — Campus Incident Memory & Provenance Repository
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Button
             variant="outline"
             size="sm"
@@ -117,7 +117,7 @@ export const DashboardPage: React.FC = () => {
             onClick={() => navigate('/events/create')}
             leftIcon={<Plus className="h-3.5 w-3.5" />}
           >
-            Report Incident
+            Record Incident
           </Button>
         </div>
       </div>
@@ -134,9 +134,9 @@ export const DashboardPage: React.FC = () => {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Total Incidents"
+          label="Total Recorded Incidents"
           value={totalEventsCount !== null ? totalEventsCount : '—'}
-          description="Total recorded campus events"
+          description="Lifetime university docket entries"
           onClick={() => navigate('/events')}
         />
         <StatCard
@@ -157,11 +157,11 @@ export const DashboardPage: React.FC = () => {
         <StatCard
           label="Critical Severity"
           value={criticalCount}
-          description="Immediate hazard or major breach"
+          description="Emergency hazard or major breach"
           badge={
             criticalCount > 0 ? (
-              <Badge variant="danger" dot dotColor="bg-red-500">
-                High Priority
+              <Badge variant="danger" dot dotColor="bg-crimson-600">
+                Priority 1
               </Badge>
             ) : (
               <Badge variant="neutral">None</Badge>
@@ -185,17 +185,17 @@ export const DashboardPage: React.FC = () => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Severity Distribution */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs border-t-2 border-t-navy-800">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">
+              <h2 className="text-sm font-bold text-navy-950">
                 Open Incidents by Severity
               </h2>
               <p className="text-xs text-slate-500">
-                Distribution across threat levels
+                Threat distribution across active campus incidents
               </p>
             </div>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-xs font-mono font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
               {summary?.open_by_severity?.length || 0} levels
             </span>
           </div>
@@ -210,18 +210,18 @@ export const DashboardPage: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis
                     dataKey="display_name"
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tick={{ fontSize: 11, fill: '#475569' }}
                     interval={0}
                   />
                   <YAxis
                     allowDecimals={false}
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tick={{ fontSize: 11, fill: '#475569' }}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#1e293b',
-                      borderColor: '#334155',
-                      borderRadius: '8px',
+                      backgroundColor: '#0b2341',
+                      borderColor: '#1e3f64',
+                      borderRadius: '6px',
                       color: '#fff',
                       fontSize: '12px',
                     }}
@@ -230,7 +230,7 @@ export const DashboardPage: React.FC = () => {
                     {summary.open_by_severity.map((entry) => (
                       <Cell
                         key={entry.code}
-                        fill={SEVERITY_COLORS[entry.code.toLowerCase()] || '#3b82f6'}
+                        fill={SEVERITY_COLORS[entry.code.toLowerCase()] || '#1e3f64'}
                       />
                     ))}
                   </Bar>
@@ -245,17 +245,17 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Category Breakdown */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs border-t-2 border-t-navy-800">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">
+              <h2 className="text-sm font-bold text-navy-950">
                 Open Incidents by Category
               </h2>
               <p className="text-xs text-slate-500">
                 Categorical breakdown of campus occurrences
               </p>
             </div>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-xs font-mono font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
               {summary?.open_by_category?.length || 0} categories
             </span>
           </div>
@@ -272,19 +272,19 @@ export const DashboardPage: React.FC = () => {
                   <XAxis
                     type="number"
                     allowDecimals={false}
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tick={{ fontSize: 11, fill: '#475569' }}
                   />
                   <YAxis
                     type="category"
                     dataKey="display_name"
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tick={{ fontSize: 11, fill: '#475569' }}
                     width={90}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#1e293b',
-                      borderColor: '#334155',
-                      borderRadius: '8px',
+                      backgroundColor: '#0b2341',
+                      borderColor: '#1e3f64',
+                      borderRadius: '6px',
                       color: '#fff',
                       fontSize: '12px',
                     }}
@@ -292,7 +292,7 @@ export const DashboardPage: React.FC = () => {
                   <Bar
                     dataKey="event_count"
                     name="Open Incidents"
-                    fill="#0f172a"
+                    fill="#0b2341"
                     radius={[0, 4, 4, 0]}
                   >
                     {summary.open_by_category.map((_, index) => (
@@ -314,37 +314,37 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Recent Open Incidents Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden border-t-2 border-t-navy-800">
         <div className="flex items-center justify-between border-b border-slate-100 p-5">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-bold text-navy-950">
               Recent Open Incidents
             </h2>
             <p className="text-xs text-slate-500">
-              Latest reported and ongoing campus events
+              Official university docket of ongoing campus events
             </p>
           </div>
           <Link
             to="/events"
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+            className="flex items-center gap-1.5 text-xs font-bold text-navy-800 hover:text-navy-950 transition-colors"
           >
-            <span>View All Incidents</span>
+            <span>View Full Registry</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
               <tr>
-                <th className="px-5 py-3 font-medium">Event Code</th>
-                <th className="px-5 py-3 font-medium">Title</th>
-                <th className="px-5 py-3 font-medium">Category</th>
-                <th className="px-5 py-3 font-medium">Severity</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium">Location</th>
-                <th className="px-5 py-3 font-medium">Started At</th>
-                <th className="px-5 py-3 font-medium text-right">Actions</th>
+                <th className="px-5 py-3.5">Event Code</th>
+                <th className="px-5 py-3.5">Title</th>
+                <th className="px-5 py-3.5">Category</th>
+                <th className="px-5 py-3.5">Severity</th>
+                <th className="px-5 py-3.5">Status</th>
+                <th className="px-5 py-3.5">Location</th>
+                <th className="px-5 py-3.5">Started At</th>
+                <th className="px-5 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -356,21 +356,23 @@ export const DashboardPage: React.FC = () => {
                   return (
                     <tr
                       key={evt.event_id}
-                      className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                      className="hover:bg-navy-50/30 transition-colors cursor-pointer"
                       onClick={() => navigate(`/events/${evt.event_id}`)}
                     >
-                      <td className="px-5 py-3.5 font-mono font-medium text-slate-900">
-                        {evt.event_code}
+                      <td className="px-5 py-3.5">
+                        <span className="font-mono font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/60">
+                          {evt.event_code}
+                        </span>
                       </td>
-                      <td className="px-5 py-3.5 font-medium text-slate-900 max-w-[220px] truncate">
+                      <td className="px-5 py-3.5 font-semibold text-navy-950 max-w-[220px] truncate">
                         {evt.title}
                       </td>
-                      <td className="px-5 py-3.5 text-slate-600">
+                      <td className="px-5 py-3.5 text-slate-600 font-medium">
                         {evt.category_name || evt.category_code || '—'}
                       </td>
                       <td className="px-5 py-3.5">
                         <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium border ${severityProps.bg} ${severityProps.text} ${severityProps.border}`}
+                          className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-semibold border ${severityProps.bg} ${severityProps.text} ${severityProps.border}`}
                         >
                           <span className={`h-1.5 w-1.5 rounded-full ${severityProps.dotColor}`} />
                           {severityProps.label}
@@ -378,7 +380,7 @@ export const DashboardPage: React.FC = () => {
                       </td>
                       <td className="px-5 py-3.5">
                         <span
-                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
+                          className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
                         >
                           {statusProps.label}
                         </span>
@@ -393,7 +395,7 @@ export const DashboardPage: React.FC = () => {
                         <Link
                           to={`/events/${evt.event_id}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="font-medium text-blue-600 hover:text-blue-800"
+                          className="font-bold text-navy-800 hover:text-navy-950 underline-offset-2 hover:underline"
                         >
                           Inspect
                         </Link>

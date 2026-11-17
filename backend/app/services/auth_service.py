@@ -71,11 +71,10 @@ async def login(provider: AuthProvider, payload: LoginRequest) -> LoginResponse:
     if not auth_result.access_token:
         raise AuthorizationError("A valid Supabase session is required.", code="session_unavailable")
 
-    identity = await provider.verify_access_token(auth_result.access_token)
     from app.db.transactions import connection
 
     async with connection() as conn:
-        user_row = await user_repository.get_user_by_auth_subject(conn, identity.subject)
+        user_row = await user_repository.get_user_by_auth_subject(conn, auth_result.user_id)
         if user_row is None:
             raise AuthorizationError(
                 "The authenticated subject is not mapped to an application user.",

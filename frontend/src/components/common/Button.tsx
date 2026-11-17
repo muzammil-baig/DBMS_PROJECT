@@ -21,15 +21,19 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none';
+    'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-700/50 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none';
 
   const variants = {
-    primary: 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm active:bg-slate-950',
-    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300',
-    outline: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 shadow-sm active:bg-slate-100',
-    destructive: 'bg-rose-600 text-white hover:bg-rose-700 shadow-sm active:bg-rose-800',
-    ghost: 'text-slate-700 hover:bg-slate-100 active:bg-slate-200',
-    link: 'text-blue-600 underline-offset-4 hover:underline p-0 h-auto',
+    primary:
+      'bg-navy-900 text-white hover:bg-navy-800 active:bg-navy-950 shadow-xs border border-navy-950/20 hover:shadow-sm',
+    secondary:
+      'bg-navy-50 text-navy-900 hover:bg-navy-100 active:bg-navy-200 border border-navy-200/60',
+    outline:
+      'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-xs active:bg-slate-100',
+    destructive:
+      'bg-crimson-700 text-white hover:bg-crimson-800 shadow-xs active:bg-crimson-900 border border-crimson-900/20',
+    ghost: 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200',
+    link: 'text-navy-700 hover:text-navy-950 underline-offset-4 hover:underline p-0 h-auto',
   };
 
   const sizes = {

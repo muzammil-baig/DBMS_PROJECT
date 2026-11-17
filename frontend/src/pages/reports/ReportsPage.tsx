@@ -30,7 +30,7 @@ import { Alert } from '../../components/common/Alert';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { toIsoWithTz, formatDateOnly } from '../../utils/formatters';
 
-const CHART_COLORS = ['#0f172a', '#2563eb', '#0d9488', '#f59e0b', '#ec4899', '#8b5cf6'];
+const CHART_COLORS = ['#0b2341', '#1e3f64', '#0d9488', '#c59a28', '#475569', '#2b5c92'];
 
 export const ReportsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -103,13 +103,17 @@ export const ReportsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gold-700">
+            <span className="h-2 w-2 rounded-full bg-gold-600" />
+            Executive Intelligence & Analytics
+          </div>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-navy-950">
             Institutional Reports & Analytics
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">
-            Executive summaries, recurrence patterns, and detailed investigation records.
+            Executive summaries, recurrence patterns, and comprehensive campus incident records.
           </p>
         </div>
 
@@ -120,7 +124,7 @@ export const ReportsPage: React.FC = () => {
             onClick={() => window.print()}
             leftIcon={<Printer className="h-3.5 w-3.5" />}
           >
-            Print Report
+            Print Dossier
           </Button>
         </div>
       </div>
@@ -135,22 +139,22 @@ export const ReportsPage: React.FC = () => {
       )}
 
       {/* Direct Event Investigation Dossier Navigation Card */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t-2 border-t-navy-800">
         <div className="flex-1">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
-            <FileSearch className="h-4 w-4 text-teal-600" />
-            Specific Incident Dossier Report
+          <div className="flex items-center gap-2 text-xs font-bold text-navy-950 uppercase tracking-wider">
+            <FileSearch className="h-4 w-4 text-navy-700" />
+            Specific Incident Dossier Briefing
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Generate an individual forensic investigation dossier with root causes and blast radius.
+            Generate an individual forensic investigation dossier with root cause graphs and blast radius.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <select
             value={selectedInspectEventId}
             onChange={(e) => setSelectedInspectEventId(e.target.value)}
-            className="rounded-lg border border-slate-300 py-1.5 px-3 text-xs bg-white text-slate-800 focus:outline-none max-w-xs"
+            className="rounded-md border border-slate-300 py-2 px-3 text-xs font-medium bg-white text-navy-950 focus:border-navy-700 focus:outline-none max-w-xs"
           >
             {eventsList.map((e) => (
               <option key={e.event_id} value={e.event_id}>
@@ -173,48 +177,48 @@ export const ReportsPage: React.FC = () => {
       </div>
 
       {/* Report Controls: Date Filter & Mode */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs space-y-4 border-t-2 border-t-navy-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-100">
+          <div className="flex rounded-md border border-slate-300 p-0.5 bg-slate-100">
             <button
               onClick={() => setActiveTab('summary')}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded px-3.5 py-1.5 text-xs font-bold transition-all ${
                 activeTab === 'summary'
-                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-navy-950 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-navy-950'
               }`}
             >
               Event Summary Report
             </button>
             <button
               onClick={() => setActiveTab('recurrence')}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded px-3.5 py-1.5 text-xs font-bold transition-all ${
                 activeTab === 'recurrence'
-                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-navy-950 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-navy-950'
               }`}
             >
               Recurrence Analytics
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-slate-500 font-medium">From:</span>
+              <span className="text-xs text-navy-950 font-bold">From:</span>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="rounded-lg border border-slate-300 py-1 px-2.5 text-xs text-slate-800 bg-white focus:outline-none"
+                className="rounded-md border border-slate-300 py-1.5 px-2.5 text-xs text-slate-800 font-medium bg-white focus:border-navy-700 focus:outline-none"
               />
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-slate-500 font-medium">To:</span>
+              <span className="text-xs text-navy-950 font-bold">To:</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="rounded-lg border border-slate-300 py-1 px-2.5 text-xs text-slate-800 bg-white focus:outline-none"
+                className="rounded-md border border-slate-300 py-1.5 px-2.5 text-xs text-slate-800 font-medium bg-white focus:border-navy-700 focus:outline-none"
               />
             </div>
             <Button

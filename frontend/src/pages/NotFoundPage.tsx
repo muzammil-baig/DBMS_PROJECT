@@ -5,21 +5,27 @@ import { Button } from '../components/common/Button';
 
 export const NotFoundPage: React.FC = () => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-teal-400 shadow-md mb-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50/70 p-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-navy-950 text-gold-400 shadow-md ring-1 ring-gold-500/30 mb-5">
         <ShieldAlert className="h-8 w-8" />
       </div>
-      <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">404</h1>
-      <h2 className="mt-2 text-lg font-semibold text-slate-700">Page Not Found</h2>
-      <p className="mt-1 max-w-sm text-xs text-slate-500">
-        The requested campus route or resource does not exist in the CAMPUS MEMORY directory.
+      <div className="text-xs font-bold uppercase tracking-widest text-navy-900 mb-1">
+        CAMPUS MEMORY • REGISTRY EXCEPTION
+      </div>
+      <h1 className="text-5xl font-serif font-bold tracking-tight text-navy-950">404</h1>
+      <h2 className="mt-2 text-base font-bold text-slate-800">Resource Not Registered in Master Docket</h2>
+      <p className="mt-1 max-w-md text-xs text-slate-500 leading-relaxed">
+        The requested routing path or dossier identifier does not exist within the institutional memory index.
       </p>
       <div className="mt-6">
         <Link to="/dashboard">
           <Button leftIcon={<Home className="h-4 w-4" />}>
-            Return to Dashboard
+            Return to Incident Command
           </Button>
         </Link>
+      </div>
+      <div className="mt-12 text-[11px] font-mono text-slate-400 uppercase tracking-widest">
+        Institutional Record System • Campus Provenance Engine
       </div>
     </div>
   );

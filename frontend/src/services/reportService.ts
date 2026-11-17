@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, DATA_REQUEST_TIMEOUT_MS } from './apiClient';
 import {
   DashboardSummary,
   EventInvestigationReport,
@@ -8,7 +8,9 @@ import {
 
 export const reportService = {
   async getDashboardSummary(): Promise<DashboardSummary> {
-    const response = await apiClient.get<DashboardSummary>('/dashboard/summary');
+    const response = await apiClient.get<DashboardSummary>('/dashboard/summary', {
+      timeout: DATA_REQUEST_TIMEOUT_MS,
+    });
     return response.data;
   },
 
@@ -23,6 +25,7 @@ export const reportService = {
         started_before: startedBefore,
         category_code: categoryCode || undefined,
       },
+      timeout: DATA_REQUEST_TIMEOUT_MS,
     });
     return response.data;
   },
@@ -36,13 +39,17 @@ export const reportService = {
         started_after: startedAfter,
         started_before: startedBefore,
       },
+      timeout: DATA_REQUEST_TIMEOUT_MS,
     });
     return response.data;
   },
 
   async getEventInvestigationReport(eventId: string): Promise<EventInvestigationReport> {
     const response = await apiClient.get<EventInvestigationReport>(
-      `/reports/event-investigation/${eventId}`
+      `/reports/event-investigation/${eventId}`,
+      {
+        timeout: DATA_REQUEST_TIMEOUT_MS,
+      }
     );
     return response.data;
   },

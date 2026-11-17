@@ -143,53 +143,57 @@ export const EventsListPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            Campus Incidents & Events
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gold-700">
+            <span className="h-2 w-2 rounded-full bg-gold-600" />
+            University Master Docket
+          </div>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-navy-950">
+            Campus Incident Registry
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">
-            Search, filter, and track recorded campus safety, IT, and operational incidents.
+            Search, filter, and track verified campus safety, IT, and operational incidents.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Button
             variant={isAsOfMode ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setIsAsOfMode(!isAsOfMode)}
             leftIcon={<History className="h-3.5 w-3.5" />}
           >
-            {isAsOfMode ? 'Exit As-Of Reconstruction' : 'Temporal As-Of Query'}
+            {isAsOfMode ? 'Exit As-Of Mode' : 'Temporal As-Of Query'}
           </Button>
           <Button
             size="sm"
             onClick={() => navigate('/events/create')}
             leftIcon={<Plus className="h-3.5 w-3.5" />}
           >
-            Report Incident
+            Record Incident
           </Button>
         </div>
       </div>
 
       {isAsOfMode && (
-        <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="rounded-lg border border-navy-300 bg-navy-50/80 p-5 border-l-4 border-l-navy-800 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-teal-900">
-                <Clock className="h-4 w-4 text-teal-600" />
-                Temporal Provenance Reconstruction
+              <div className="flex items-center gap-2 text-xs font-bold text-navy-950 uppercase tracking-wider">
+                <Clock className="h-4 w-4 text-navy-700" />
+                Forensic Temporal Reconstruction Engine
               </div>
-              <p className="mt-0.5 text-xs text-teal-700">
-                Reconstruct the status of incidents exactly as they were recorded at a past point in time.
+              <p className="mt-1 text-xs text-navy-800 leading-relaxed">
+                Reconstruct the exact status and metadata of incidents as recorded at any historical point in time.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <input
                 type="datetime-local"
                 value={asOfTimestamp}
                 onChange={(e) => setAsOfTimestamp(e.target.value)}
-                className="rounded-lg border border-teal-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="rounded-md border border-navy-300 bg-white px-3 py-1.5 text-xs text-navy-950 font-medium focus:outline-none focus:ring-1 focus:ring-navy-700 shadow-xs"
               />
               <Button size="sm" onClick={loadEvents}>
                 Reconstruct
@@ -209,7 +213,7 @@ export const EventsListPage: React.FC = () => {
       )}
 
       {/* Filter and Search Bar */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Keyword Search */}
           <div className="relative">
@@ -219,7 +223,7 @@ export const EventsListPage: React.FC = () => {
               placeholder="Search by title, code or keyword..."
               value={keyword}
               onChange={(e) => updateFilter('keyword', e.target.value)}
-              className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-xs placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 transition-colors"
             />
           </div>
 
@@ -228,7 +232,7 @@ export const EventsListPage: React.FC = () => {
             <select
               value={categoryCode}
               onChange={(e) => updateFilter('category_code', e.target.value)}
-              className="w-full rounded-lg border border-slate-200 py-2 px-3 text-xs text-slate-700 focus:border-slate-400 focus:outline-none bg-white"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-700 focus:border-navy-700 focus:outline-none bg-white transition-colors"
             >
               <option value="">All Categories</option>
               {categories.map((c) => (
@@ -244,7 +248,7 @@ export const EventsListPage: React.FC = () => {
             <select
               value={severityCode}
               onChange={(e) => updateFilter('severity_code', e.target.value)}
-              className="w-full rounded-lg border border-slate-200 py-2 px-3 text-xs text-slate-700 focus:border-slate-400 focus:outline-none bg-white"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-700 focus:border-navy-700 focus:outline-none bg-white transition-colors"
             >
               <option value="">All Severities</option>
               {severities.map((s) => (
@@ -260,7 +264,7 @@ export const EventsListPage: React.FC = () => {
             <select
               value={statusCode}
               onChange={(e) => updateFilter('status_code', e.target.value)}
-              className="w-full rounded-lg border border-slate-200 py-2 px-3 text-xs text-slate-700 focus:border-slate-400 focus:outline-none bg-white"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-700 focus:border-navy-700 focus:outline-none bg-white transition-colors"
             >
               <option value="">All Statuses</option>
               {statuses.map((st) => (
@@ -275,46 +279,46 @@ export const EventsListPage: React.FC = () => {
         {/* Filter status tags */}
         {(keyword || categoryCode || severityCode || statusCode) && (
           <div className="flex items-center gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
-            <span>Active filters:</span>
+            <span className="font-semibold text-slate-600">Active filters:</span>
             {keyword && (
-              <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-slate-700">
+              <span className="inline-flex items-center gap-1 rounded bg-navy-50 border border-navy-200/60 px-2 py-0.5 text-navy-900 font-medium">
                 "{keyword}"
                 <X
-                  className="h-3 w-3 cursor-pointer"
+                  className="h-3 w-3 cursor-pointer text-slate-400 hover:text-navy-900"
                   onClick={() => updateFilter('keyword', '')}
                 />
               </span>
             )}
             {categoryCode && (
-              <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-slate-700">
+              <span className="inline-flex items-center gap-1 rounded bg-navy-50 border border-navy-200/60 px-2 py-0.5 text-navy-900 font-medium">
                 Category: {categoryCode}
                 <X
-                  className="h-3 w-3 cursor-pointer"
+                  className="h-3 w-3 cursor-pointer text-slate-400 hover:text-navy-900"
                   onClick={() => updateFilter('category_code', '')}
                 />
               </span>
             )}
             {severityCode && (
-              <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-slate-700">
+              <span className="inline-flex items-center gap-1 rounded bg-navy-50 border border-navy-200/60 px-2 py-0.5 text-navy-900 font-medium">
                 Severity: {severityCode}
                 <X
-                  className="h-3 w-3 cursor-pointer"
+                  className="h-3 w-3 cursor-pointer text-slate-400 hover:text-navy-900"
                   onClick={() => updateFilter('severity_code', '')}
                 />
               </span>
             )}
             {statusCode && (
-              <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-slate-700">
+              <span className="inline-flex items-center gap-1 rounded bg-navy-50 border border-navy-200/60 px-2 py-0.5 text-navy-900 font-medium">
                 Status: {statusCode}
                 <X
-                  className="h-3 w-3 cursor-pointer"
+                  className="h-3 w-3 cursor-pointer text-slate-400 hover:text-navy-900"
                   onClick={() => updateFilter('status_code', '')}
                 />
               </span>
             )}
             <button
               onClick={clearAllFilters}
-              className="ml-auto text-xs text-blue-600 hover:underline"
+              className="ml-auto text-xs font-bold text-navy-800 hover:text-navy-950 underline"
             >
               Reset all
             </button>
@@ -323,24 +327,24 @@ export const EventsListPage: React.FC = () => {
       </div>
 
       {/* Events Table Container */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden border-t-2 border-t-navy-800">
         {isLoading ? (
           <div className="p-12">
-            <LoadingSpinner label="Loading incidents..." />
+            <LoadingSpinner label="Compiling incident registry..." />
           </div>
         ) : isAsOfMode ? (
           /* As-Of Historical Table */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+              <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Event Code</th>
-                  <th className="px-5 py-3 font-medium">Title</th>
-                  <th className="px-5 py-3 font-medium">Historical Status</th>
-                  <th className="px-5 py-3 font-medium">Recorded At</th>
-                  <th className="px-5 py-3 font-medium">Transition Reason</th>
-                  <th className="px-5 py-3 font-medium">Reconstruction Note</th>
-                  <th className="px-5 py-3 font-medium text-right">Action</th>
+                  <th className="px-5 py-3.5">Event Code</th>
+                  <th className="px-5 py-3.5">Title</th>
+                  <th className="px-5 py-3.5">Historical Status</th>
+                  <th className="px-5 py-3.5">Recorded At</th>
+                  <th className="px-5 py-3.5">Transition Reason</th>
+                  <th className="px-5 py-3.5">Reconstruction Note</th>
+                  <th className="px-5 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -350,18 +354,20 @@ export const EventsListPage: React.FC = () => {
                     return (
                       <tr
                         key={item.event_id}
-                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                        className="hover:bg-navy-50/30 transition-colors cursor-pointer"
                         onClick={() => navigate(`/events/${item.event_id}`)}
                       >
-                        <td className="px-5 py-3.5 font-mono font-medium text-slate-900">
-                          {item.event_code}
+                        <td className="px-5 py-3.5">
+                          <span className="font-mono font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/60">
+                            {item.event_code}
+                          </span>
                         </td>
-                        <td className="px-5 py-3.5 font-medium text-slate-900 max-w-[200px] truncate">
+                        <td className="px-5 py-3.5 font-semibold text-navy-950 max-w-[200px] truncate">
                           {item.title}
                         </td>
                         <td className="px-5 py-3.5">
                           <span
-                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
+                            className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
                           >
                             {statusProps.label}
                           </span>
@@ -378,7 +384,7 @@ export const EventsListPage: React.FC = () => {
                         <td className="px-5 py-3.5 text-right">
                           <Link
                             to={`/events/${item.event_id}`}
-                            className="font-medium text-blue-600 hover:text-blue-800"
+                            className="font-bold text-navy-800 hover:text-navy-950 underline-offset-2 hover:underline"
                           >
                             Inspect
                           </Link>
@@ -403,16 +409,16 @@ export const EventsListPage: React.FC = () => {
           /* Standard Events Table */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+              <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Event Code</th>
-                  <th className="px-5 py-3 font-medium">Title</th>
-                  <th className="px-5 py-3 font-medium">Category</th>
-                  <th className="px-5 py-3 font-medium">Severity</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Location</th>
-                  <th className="px-5 py-3 font-medium">Started At</th>
-                  <th className="px-5 py-3 font-medium text-right">Actions</th>
+                  <th className="px-5 py-3.5">Event Code</th>
+                  <th className="px-5 py-3.5">Title</th>
+                  <th className="px-5 py-3.5">Category</th>
+                  <th className="px-5 py-3.5">Severity</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5">Location</th>
+                  <th className="px-5 py-3.5">Started At</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -424,21 +430,23 @@ export const EventsListPage: React.FC = () => {
                     return (
                       <tr
                         key={event.event_id}
-                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                        className="hover:bg-navy-50/30 transition-colors cursor-pointer"
                         onClick={() => navigate(`/events/${event.event_id}`)}
                       >
-                        <td className="px-5 py-3.5 font-mono font-medium text-slate-900">
-                          {event.event_code}
+                        <td className="px-5 py-3.5">
+                          <span className="font-mono font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/60">
+                            {event.event_code}
+                          </span>
                         </td>
-                        <td className="px-5 py-3.5 font-medium text-slate-900 max-w-[220px] truncate">
+                        <td className="px-5 py-3.5 font-semibold text-navy-950 max-w-[220px] truncate">
                           {event.title}
                         </td>
-                        <td className="px-5 py-3.5 text-slate-600">
+                        <td className="px-5 py-3.5 text-slate-600 font-medium">
                           {event.category_name || event.category_code}
                         </td>
                         <td className="px-5 py-3.5">
                           <span
-                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium border ${severityProps.bg} ${severityProps.text} ${severityProps.border}`}
+                            className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-semibold border ${severityProps.bg} ${severityProps.text} ${severityProps.border}`}
                           >
                             <span
                               className={`h-1.5 w-1.5 rounded-full ${severityProps.dotColor}`}
@@ -448,7 +456,7 @@ export const EventsListPage: React.FC = () => {
                         </td>
                         <td className="px-5 py-3.5">
                           <span
-                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
+                            className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
                           >
                             {statusProps.label}
                           </span>
@@ -463,9 +471,9 @@ export const EventsListPage: React.FC = () => {
                           <Link
                             to={`/events/${event.event_id}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="font-medium text-blue-600 hover:text-blue-800"
+                            className="font-bold text-navy-800 hover:text-navy-950 underline-offset-2 hover:underline"
                           >
-                            Details
+                            Dossier
                           </Link>
                         </td>
                       </tr>
@@ -494,16 +502,16 @@ export const EventsListPage: React.FC = () => {
 
         {/* Pagination Footer */}
         {totalItems > 0 && (
-          <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 text-xs text-slate-500 bg-slate-50/50">
+          <div className="flex items-center justify-between border-t border-slate-200 px-5 py-3.5 text-xs text-slate-600 bg-slate-50">
             <div>
-              Showing <span className="font-medium text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> to{' '}
-              <span className="font-medium text-slate-800">
+              Showing <span className="font-bold text-navy-950">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> to{' '}
+              <span className="font-bold text-navy-950">
                 {Math.min(currentPage * pageSize, totalItems)}
               </span>{' '}
-              of <span className="font-medium text-slate-800">{totalItems}</span> incidents
+              of <span className="font-bold text-navy-950">{totalItems}</span> incidents
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
@@ -513,7 +521,7 @@ export const EventsListPage: React.FC = () => {
               >
                 Previous
               </Button>
-              <span className="px-2 font-medium text-slate-700">
+              <span className="px-2 font-semibold text-navy-950">
                 Page {currentPage} of {totalPages}
               </span>
               <Button

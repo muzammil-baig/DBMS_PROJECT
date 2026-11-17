@@ -84,23 +84,27 @@ export const InvestigationsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gold-700">
+            <span className="h-2 w-2 rounded-full bg-gold-600" />
+            Forensic Investigation Laboratory
+          </div>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-navy-950">
             Incident Investigation Console
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">
-            Causal root-cause analysis and cascading blast-radius propagation across campus systems.
+            Recursive graph traversal identifying root causes and cascading blast radius across campus facilities and services.
           </p>
         </div>
 
         {selectedEventId && (
           <Link
             to={`/reports/investigation/${selectedEventId}`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-md border border-navy-900 bg-navy-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-navy-800 shadow-xs transition-colors shrink-0"
           >
-            <span>Formal Report View</span>
-            <ExternalLink className="h-3.5 w-3.5 text-slate-500" />
+            <span>Formal Dossier View</span>
+            <ExternalLink className="h-3.5 w-3.5 text-gold-400" />
           </Link>
         )}
       </div>
@@ -115,17 +119,17 @@ export const InvestigationsPage: React.FC = () => {
       )}
 
       {/* Control Panel: Event Selector & Link Mode */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs border-t-2 border-t-navy-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex-1">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy-950 mb-1.5">
               Select Incident to Investigate
             </label>
             <select
               value={selectedEventId}
               onChange={(e) => handleSelectEvent(e.target.value)}
               disabled={isLoadingList}
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white text-slate-800 focus:border-slate-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium bg-white text-navy-950 focus:border-navy-700 focus:outline-none"
             >
               {eventsList.map((e) => (
                 <option key={e.event_id} value={e.event_id}>
@@ -136,17 +140,17 @@ export const InvestigationsPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy-950 mb-1.5">
               Causal Traversal Mode
             </label>
-            <div className="flex rounded-lg border border-slate-300 p-0.5 bg-slate-100">
+            <div className="flex rounded-md border border-slate-300 p-0.5 bg-slate-100">
               <button
                 type="button"
                 onClick={() => setLinkMode('confirmed_only')}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded px-3 py-1.5 text-xs font-bold transition-all ${
                   linkMode === 'confirmed_only'
-                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-navy-950 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-navy-950'
                 }`}
               >
                 Confirmed Only
@@ -154,10 +158,10 @@ export const InvestigationsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setLinkMode('include_suspected')}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded px-3 py-1.5 text-xs font-bold transition-all ${
                   linkMode === 'include_suspected'
-                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-navy-950 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-navy-950'
                 }`}
               >
                 Include Suspected
@@ -168,17 +172,17 @@ export const InvestigationsPage: React.FC = () => {
       </div>
 
       {isAnalyzing ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-12 shadow-xs">
+        <div className="rounded-lg border border-slate-200 bg-white p-12 shadow-xs border-t-2 border-t-navy-800">
           <LoadingSpinner label="Traversing causal graph provenance..." />
         </div>
       ) : activeEvent ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Root Causes Column */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs space-y-4 border-t-2 border-t-navy-800">
             <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                  <Network className="h-4 w-4 text-indigo-600" />
+                <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
+                  <Network className="h-4 w-4 text-navy-800" />
                   Root Cause Provenance
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -191,7 +195,7 @@ export const InvestigationsPage: React.FC = () => {
             </div>
 
             {rootCauses?.uniqueness_note && (
-              <p className="text-[11px] text-slate-400 italic">
+              <p className="text-[11px] text-slate-500 italic bg-navy-50/50 p-2.5 rounded border border-navy-100">
                 {rootCauses.uniqueness_note}
               </p>
             )}
@@ -201,21 +205,21 @@ export const InvestigationsPage: React.FC = () => {
                 {rootCauses.nodes.map((node) => (
                   <div
                     key={node.event_id}
-                    className="rounded-lg border border-slate-200 p-4 bg-slate-50/60 hover:bg-slate-50 transition-colors"
+                    className="rounded-md border border-slate-200 p-4 bg-slate-50 hover:border-navy-300 hover:bg-navy-50/20 transition-all shadow-xs"
                   >
                     <div className="flex items-center justify-between">
                       <Link
                         to={`/events/${node.event_id}`}
-                        className="font-mono text-xs font-bold text-blue-600 hover:underline"
+                        className="font-mono text-xs font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/80 hover:underline"
                       >
                         {node.event_code}
                       </Link>
                       <Badge variant="info">Depth: {node.minimum_depth}</Badge>
                     </div>
-                    <h3 className="mt-1 text-xs font-semibold text-slate-900">
+                    <h3 className="mt-2 text-xs font-bold text-navy-950">
                       {node.title}
                     </h3>
-                    <div className="mt-2 text-[11px] text-slate-500">
+                    <div className="mt-2 text-[11px] text-slate-500 font-medium">
                       Path: {node.path_event_ids?.length || 1} step(s) in causal chain
                     </div>
                   </div>
@@ -224,17 +228,17 @@ export const InvestigationsPage: React.FC = () => {
             ) : (
               <div className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-xs text-slate-400">
                 No upstream root causes found under mode:{' '}
-                <span className="font-semibold">{linkMode}</span>.
+                <span className="font-semibold text-navy-950">{linkMode}</span>.
               </div>
             )}
           </div>
 
           {/* Blast Radius Column */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs space-y-4 border-t-2 border-t-navy-800">
             <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-amber-600" />
+                <h2 className="text-sm font-bold text-navy-950 flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-gold-600" />
                   Cascading Blast Radius
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -247,7 +251,7 @@ export const InvestigationsPage: React.FC = () => {
             </div>
 
             {blastRadius?.impact_grouping_note && (
-              <p className="text-[11px] text-slate-400 italic">
+              <p className="text-[11px] text-slate-500 italic bg-amber-50/50 p-2.5 rounded border border-amber-200/60">
                 {blastRadius.impact_grouping_note}
               </p>
             )}
@@ -255,24 +259,24 @@ export const InvestigationsPage: React.FC = () => {
             {/* Downstream Nodes */}
             {blastRadius?.nodes && blastRadius.nodes.length > 0 ? (
               <div className="space-y-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-navy-950">
                   Affected Downstream Incidents
                 </h3>
                 {blastRadius.nodes.map((node) => (
                   <div
                     key={node.event_id}
-                    className="rounded-lg border border-slate-200 p-4 bg-slate-50/60 hover:bg-slate-50 transition-colors"
+                    className="rounded-md border border-slate-200 p-4 bg-slate-50 hover:border-gold-300 hover:bg-gold-50/20 transition-all shadow-xs"
                   >
                     <div className="flex items-center justify-between">
                       <Link
                         to={`/events/${node.event_id}`}
-                        className="font-mono text-xs font-bold text-blue-600 hover:underline"
+                        className="font-mono text-xs font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/80 hover:underline"
                       >
                         {node.event_code}
                       </Link>
                       <Badge variant="warning">Depth: {node.minimum_depth}</Badge>
                     </div>
-                    <div className="mt-1 text-xs font-semibold text-slate-900">
+                    <div className="mt-2 text-xs font-bold text-navy-950">
                       {node.title}
                     </div>
                   </div>
@@ -287,28 +291,28 @@ export const InvestigationsPage: React.FC = () => {
             {/* Aggregated Cumulative Impacts in Blast Radius */}
             {blastRadius?.impacts && blastRadius.impacts.length > 0 && (
               <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-navy-950">
                   Cumulative Blast Radius Impacts
                 </h3>
                 <div className="space-y-2">
                   {blastRadius.impacts.map((imp, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between rounded-lg border border-amber-200/70 bg-amber-50/40 p-3 text-xs"
+                      className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50/60 p-3 text-xs"
                     >
                       <div>
-                        <div className="font-semibold text-slate-900">
+                        <div className="font-bold text-navy-950">
                           {imp.impact_type_name}
                         </div>
-                        <div className="text-[11px] text-slate-500">
-                          Object: {imp.affected_object_key}
+                        <div className="text-[11px] text-slate-600 font-medium">
+                          Entity: {imp.affected_object_key}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-mono font-bold text-slate-900">
+                        <div className="font-mono font-bold text-navy-950 text-sm">
                           {imp.headline_quantity} {imp.unit_name || imp.unit_code}
                         </div>
-                        <div className="text-[10px] text-slate-500 uppercase">
+                        <div className="text-[10px] text-slate-500 uppercase font-semibold">
                           {imp.verification_status} ({imp.impact_record_count} record(s))
                         </div>
                       </div>

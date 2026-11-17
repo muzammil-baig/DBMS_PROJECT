@@ -18,20 +18,20 @@ export const Alert: React.FC<AlertProps> = ({
 }) => {
   const styles = {
     info: {
-      container: 'bg-blue-50/70 border-blue-200 text-blue-900',
-      icon: <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />,
+      container: 'bg-navy-50/80 border-navy-200 text-navy-950 border-l-4 border-l-navy-800',
+      icon: <Info className="h-4 w-4 text-navy-700 shrink-0 mt-0.5" />,
     },
     success: {
-      container: 'bg-emerald-50/70 border-emerald-200 text-emerald-900',
-      icon: <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />,
+      container: 'bg-emerald-50/80 border-emerald-200 text-emerald-950 border-l-4 border-l-emerald-600',
+      icon: <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />,
     },
     warning: {
-      container: 'bg-amber-50/70 border-amber-200 text-amber-900',
-      icon: <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />,
+      container: 'bg-amber-50/80 border-amber-200 text-amber-950 border-l-4 border-l-gold-600',
+      icon: <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />,
     },
     error: {
-      container: 'bg-rose-50/70 border-rose-200 text-rose-900',
-      icon: <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />,
+      container: 'bg-crimson-50/80 border-crimson-200 text-crimson-950 border-l-4 border-l-crimson-700',
+      icon: <AlertCircle className="h-4 w-4 text-crimson-700 shrink-0 mt-0.5" />,
     },
   };
 

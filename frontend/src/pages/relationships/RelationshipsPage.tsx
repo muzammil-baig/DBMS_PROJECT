@@ -345,13 +345,17 @@ export const RelationshipsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gold-700">
+            <span className="h-2 w-2 rounded-full bg-gold-600" />
+            Causal Topology Matrix
+          </div>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-navy-950">
             Incident Relationships & Provenance Graph
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">
-            Establish, inspect, confirm, or downgrade causal linkages between campus events.
+            Establish, inspect, confirm, or downgrade causal linkages between recorded campus events.
           </p>
         </div>
 
@@ -360,7 +364,7 @@ export const RelationshipsPage: React.FC = () => {
           onClick={() => setCreateModalOpen(true)}
           leftIcon={<Plus className="h-3.5 w-3.5" />}
         >
-          Create Relationship
+          Establish Relationship
         </Button>
       </div>
 
@@ -382,9 +386,9 @@ export const RelationshipsPage: React.FC = () => {
       )}
 
       {/* Event Focus Selector */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t-2 border-t-navy-800">
         <div className="flex-1">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-navy-950 mb-1.5">
             Focus Event for Relationship Mapping
           </label>
           <select
@@ -394,7 +398,7 @@ export const RelationshipsPage: React.FC = () => {
               setSelectedEventId(nextId);
               setSearchParams(nextId ? { event_id: nextId } : {}, { replace: true });
             }}
-            className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white text-slate-800 focus:border-slate-500 focus:outline-none"
+            className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium bg-white text-navy-950 focus:border-navy-700 focus:outline-none"
           >
             {eventsList.map((e) => (
               <option key={e.event_id} value={e.event_id}>
@@ -415,10 +419,10 @@ export const RelationshipsPage: React.FC = () => {
       </div>
 
       {/* Relationships Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden border-t-2 border-t-navy-800">
         <div className="border-b border-slate-100 p-5 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-bold text-navy-950">
               Linked Causal Connections
             </h2>
             <p className="text-xs text-slate-500">
@@ -432,22 +436,22 @@ export const RelationshipsPage: React.FC = () => {
 
         {isLoading ? (
           <div className="p-12">
-            <LoadingSpinner label="Loading relationships..." />
+            <LoadingSpinner label="Compiling causal relationships..." />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+              <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Role</th>
-                  <th className="px-5 py-3 font-medium">Cause Event</th>
-                  <th className="px-5 py-3 font-medium"></th>
-                  <th className="px-5 py-3 font-medium">Effect Event</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Confidence</th>
-                  <th className="px-5 py-3 font-medium">Explanation</th>
-                  <th className="px-5 py-3 font-medium">Evidence</th>
-                  <th className="px-5 py-3 font-medium text-right">Actions</th>
+                  <th className="px-5 py-3.5">Causal Role</th>
+                  <th className="px-5 py-3.5">Cause Event</th>
+                  <th className="px-2 py-3.5"></th>
+                  <th className="px-5 py-3.5">Effect Event</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5">Confidence</th>
+                  <th className="px-5 py-3.5">Explanation</th>
+                  <th className="px-5 py-3.5">Evidence</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -456,13 +460,13 @@ export const RelationshipsPage: React.FC = () => {
                     const isFocusCause = rel.cause_event_id === selectedEventId;
 
                     return (
-                      <tr key={rel.relationship_id} className="hover:bg-slate-50/80">
+                      <tr key={rel.relationship_id} className="hover:bg-navy-50/30 transition-colors">
                         <td className="px-5 py-3.5">
                           <span
-                            className={`inline-block rounded px-2 py-0.5 text-[11px] font-semibold border ${
+                            className={`inline-block rounded px-2 py-0.5 text-[11px] font-bold border ${
                               isFocusCause
-                                ? 'bg-amber-50 text-amber-800 border-amber-200'
-                                : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                                ? 'bg-gold-50 text-gold-900 border-gold-300'
+                                : 'bg-navy-50 text-navy-900 border-navy-200'
                             }`}
                           >
                             {isFocusCause ? 'Focus is Cause' : 'Focus is Effect'}
@@ -471,54 +475,54 @@ export const RelationshipsPage: React.FC = () => {
                         <td className="px-5 py-3.5">
                           <Link
                             to={`/events/${rel.cause_event_id}`}
-                            className="font-medium text-blue-600 hover:underline"
+                            className="font-mono font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/60 hover:underline"
                           >
                             {rel.cause_event_code || 'Cause Event'}
                           </Link>
-                          <div className="text-[11px] text-slate-500 truncate max-w-[150px]">
+                          <div className="text-[11px] text-slate-500 truncate max-w-[150px] font-medium mt-1">
                             {rel.cause_title}
                           </div>
                         </td>
-                        <td className="px-2 py-3.5 text-slate-400">
+                        <td className="px-2 py-3.5 text-navy-700">
                           <ArrowRight className="h-4 w-4" />
                         </td>
                         <td className="px-5 py-3.5">
                           <Link
                             to={`/events/${rel.effect_event_id}`}
-                            className="font-medium text-blue-600 hover:underline"
+                            className="font-mono font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/60 hover:underline"
                           >
                             {rel.effect_event_code || 'Effect Event'}
                           </Link>
-                          <div className="text-[11px] text-slate-500 truncate max-w-[150px]">
+                          <div className="text-[11px] text-slate-500 truncate max-w-[150px] font-medium mt-1">
                             {rel.effect_title}
                           </div>
                         </td>
                         <td className="px-5 py-3.5">
                           <span
-                            className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
+                            className={`inline-block rounded px-2 py-0.5 text-xs font-semibold border ${
                               rel.relationship_status_code === 'confirmed'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
                                 : rel.relationship_status_code === 'suspected'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-slate-100 text-slate-600 border-slate-200'
+                                ? 'bg-amber-50 text-amber-900 border-amber-200'
+                                : 'bg-slate-100 text-slate-700 border-slate-200'
                             }`}
                           >
                             {rel.relationship_status_code}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 font-medium font-tabular text-slate-800">
+                        <td className="px-5 py-3.5 font-bold font-tabular text-navy-950">
                           {formatConfidence(rel.confidence_score)}
                         </td>
                         <td className="px-5 py-3.5 max-w-[200px] text-slate-600 truncate">
                           {rel.explanation}
                         </td>
-                        <td className="px-5 py-3.5 font-tabular font-medium">
+                        <td className="px-5 py-3.5 font-tabular font-bold text-navy-950">
                           {rel.evidence_count ?? 0}
                         </td>
                         <td className="px-5 py-3.5 text-right space-x-2">
                           <button
                             onClick={() => openEvidenceModal(rel.relationship_id)}
-                            className="font-medium text-teal-700 hover:underline"
+                            className="font-bold text-xs text-navy-800 hover:text-navy-950 underline"
                             title="Attach supporting evidence"
                           >
                             + Evidence
@@ -531,7 +535,7 @@ export const RelationshipsPage: React.FC = () => {
                                   type: 'confirm',
                                 })
                               }
-                              className="font-medium text-emerald-700 hover:underline"
+                              className="font-bold text-xs text-emerald-800 hover:text-emerald-950 underline"
                             >
                               Confirm
                             </button>
@@ -544,14 +548,14 @@ export const RelationshipsPage: React.FC = () => {
                                   type: 'downgrade',
                                 })
                               }
-                              className="font-medium text-amber-700 hover:underline"
+                              className="font-bold text-xs text-amber-800 hover:text-amber-950 underline"
                             >
                               Downgrade
                             </button>
                           )}
                           <button
                             onClick={() => openHistory(rel.relationship_id)}
-                            className="font-medium text-slate-600 hover:underline"
+                            className="font-bold text-xs text-slate-600 hover:text-navy-950 underline"
                           >
                             History
                           </button>

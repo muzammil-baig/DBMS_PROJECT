@@ -24,8 +24,8 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         fullHeight ? 'min-h-[300px]' : 'py-8'
       }`}
     >
-      <Loader2 className={`${sizeClasses[size]} animate-spin text-slate-700`} />
-      {label && <p className="text-xs font-medium text-slate-600">{label}</p>}
+      <Loader2 className={`${sizeClasses[size]} animate-spin text-navy-800`} />
+      {label && <p className="text-xs font-semibold uppercase tracking-wider text-navy-900">{label}</p>}
     </div>
   );
 };

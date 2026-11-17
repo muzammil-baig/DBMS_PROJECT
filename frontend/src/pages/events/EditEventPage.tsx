@@ -160,27 +160,31 @@ export const EditEventPage: React.FC = () => {
     <div className="space-y-6">
       <Breadcrumbs
         items={[
-          { label: 'Events', path: '/events' },
+          { label: 'Incident Registry', path: '/events' },
           { label: event.event_code, path: `/events/${event.event_id}` },
-          { label: 'Edit' },
+          { label: 'Edit Dossier' },
         ]}
       />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-5 shadow-xs border-t-4 border-t-navy-950">
         <div className="flex items-center gap-3">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={() => navigate(`/events/${event.event_id}`)}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
-              Edit Incident: {event.event_code}
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gold-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold-600" />
+              Incident Revision Form
+            </div>
+            <h1 className="text-xl font-extrabold tracking-tight text-navy-950">
+              Edit Incident Dossier: <span className="font-mono text-navy-800">{event.event_code}</span>
             </h1>
             <p className="text-xs text-slate-500">
-              Update editable properties of this recorded campus occurrence.
+              Update editable properties of this recorded campus occurrence in the institutional ledger.
             </p>
           </div>
         </div>
@@ -196,9 +200,9 @@ export const EditEventPage: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs space-y-4 border-t-2 border-t-navy-800">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
               Incident Title *
             </label>
             <input
@@ -206,12 +210,12 @@ export const EditEventPage: React.FC = () => {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-900 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
               Detailed Description *
             </label>
             <textarea
@@ -219,19 +223,19 @@ export const EditEventPage: React.FC = () => {
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 p-3 text-xs focus:border-slate-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 p-3 text-xs text-slate-800 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 leading-relaxed"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Category
               </label>
               <select
                 value={categoryCode}
                 onChange={(e) => setCategoryCode(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 bg-white focus:border-navy-700 focus:outline-none"
               >
                 {categories.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -242,13 +246,13 @@ export const EditEventPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Event Type
               </label>
               <select
                 value={eventTypeId}
                 onChange={(e) => setEventTypeId(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 bg-white focus:border-navy-700 focus:outline-none"
               >
                 {availableEventTypes.map((et) => (
                   <option key={et.event_type_id} value={et.event_type_id}>
@@ -259,13 +263,13 @@ export const EditEventPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Severity Level
               </label>
               <select
                 value={severityCode}
                 onChange={(e) => setSeverityCode(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 bg-white focus:border-navy-700 focus:outline-none"
               >
                 {severities.map((s) => (
                   <option key={s.code} value={s.code}>
@@ -278,39 +282,39 @@ export const EditEventPage: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Started At
               </label>
               <input
                 type="datetime-local"
                 value={startedAt}
                 onChange={(e) => setStartedAt(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 focus:border-navy-700 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Ended At (Optional)
               </label>
               <input
                 type="datetime-local"
                 value={endedAt}
                 onChange={(e) => setEndedAt(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 focus:border-navy-700 focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Linked Location
               </label>
               <select
                 value={locationId}
                 onChange={(e) => setLocationId(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 bg-white focus:border-navy-700 focus:outline-none"
               >
                 <option value="">-- None --</option>
                 {locations.map((l) => (
@@ -322,13 +326,13 @@ export const EditEventPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Linked Asset
               </label>
               <select
                 value={assetId}
                 onChange={(e) => setAssetId(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 bg-white focus:border-navy-700 focus:outline-none"
               >
                 <option value="">-- None --</option>
                 {assets.map((a) => (
@@ -341,7 +345,7 @@ export const EditEventPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
               Source Note
             </label>
             <input
@@ -349,12 +353,12 @@ export const EditEventPage: React.FC = () => {
               value={sourceNote}
               onChange={(e) => setSourceNote(e.target.value)}
               placeholder="e.g., Reported via campus safety hotline #4"
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs focus:border-slate-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs text-slate-800 focus:border-navy-700 focus:outline-none"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 pt-2">
           <Button
             type="button"
             variant="outline"
@@ -367,7 +371,7 @@ export const EditEventPage: React.FC = () => {
             isLoading={isSubmitting}
             leftIcon={<Save className="h-4 w-4" />}
           >
-            Save Changes
+            Save Dossier Changes
           </Button>
         </div>
       </form>

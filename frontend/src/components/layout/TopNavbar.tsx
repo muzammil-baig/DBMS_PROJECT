@@ -16,8 +16,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onOpenMobileMenu, title })
     let isMounted = true;
     const check = async () => {
       try {
-        await authService.checkReadiness();
-        if (isMounted) setBackendReady(true);
+        const res = await authService.checkReadiness();
+        if (isMounted) {
+          setBackendReady(res?.status === 'ready' || res?.status === 'ok');
+        }
       } catch {
         if (isMounted) setBackendReady(false);
       }
@@ -31,64 +33,84 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onOpenMobileMenu, title })
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-6 backdrop-blur-xs">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onOpenMobileMenu}
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
-          aria-label="Open sidebar"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-        {title && (
-          <h1 className="text-base font-semibold text-slate-900 hidden sm:block">
-            {title}
-          </h1>
-        )}
-      </div>
+    <header className="sticky top-0 z-30 flex flex-col border-b border-slate-200 bg-white/95 backdrop-blur-xs">
+      {/* Institutional Top Accent Ribbon (JSSSTU Academic Colors) */}
+      <div className="h-1 w-full bg-gradient-to-r from-navy-950 via-navy-800 to-gold-500" />
 
-      <div className="flex items-center gap-3 sm:gap-4">
-        {/* Backend health pill */}
-        <div className="flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 bg-slate-50">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              backendReady === true
-                ? 'bg-emerald-500'
-                : backendReady === false
-                ? 'bg-rose-500'
-                : 'bg-amber-400 animate-pulse'
-            }`}
-          />
-          <span className="hidden md:inline">Backend API:</span>
-          <span className="text-slate-800">
-            {backendReady === true ? 'Ready' : backendReady === false ? 'Offline' : 'Checking'}
-          </span>
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onOpenMobileMenu}
+            className="rounded-md p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+            aria-label="Open sidebar"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
+          <div className="hidden sm:block">
+            {title ? (
+              <h1 className="text-base font-bold text-navy-950">
+                {title}
+              </h1>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold tracking-tight text-navy-900 uppercase">
+                  Campus Memory Portal
+                </span>
+                <span className="text-slate-300">|</span>
+                <span className="text-[11px] text-slate-500">
+                  Official Incident & Provenance Repository
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* User Info & Avatar */}
-        {user && (
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
-              {user.display_name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="hidden sm:block text-left">
-              <div className="text-xs font-medium text-slate-800 leading-none">
-                {user.display_name}
-              </div>
-              <div className="text-[10px] text-slate-500 leading-tight mt-0.5">
-                {user.roles?.[0]?.replace(/_/g, ' ') || 'User'}
-              </div>
-            </div>
-
-            <button
-              onClick={logout}
-              title="Sign Out"
-              className="ml-1 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-600 transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* Institutional Telemetry / Backend Health Pill */}
+          <div className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 bg-slate-50">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                backendReady === true
+                  ? 'bg-emerald-600'
+                  : backendReady === false
+                  ? 'bg-crimson-600'
+                  : 'bg-gold-500 animate-pulse'
+              }`}
+            />
+            <span className="hidden md:inline font-semibold text-slate-500 uppercase tracking-wider text-[10px]">
+              Core Engine:
+            </span>
+            <span className="font-semibold text-navy-950">
+              {backendReady === true ? 'Active' : backendReady === false ? 'Offline' : 'Connecting'}
+            </span>
           </div>
-        )}
+
+          {/* User Info & Avatar */}
+          {user && (
+            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-900 text-xs font-bold text-white border border-gold-400/60 shadow-xs">
+                {user.display_name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="hidden sm:block text-left">
+                <div className="text-xs font-bold text-navy-950 leading-none">
+                  {user.display_name}
+                </div>
+                <div className="text-[10px] font-semibold text-gold-700 leading-tight mt-0.5 uppercase tracking-wide">
+                  {user.roles?.[0]?.replace(/_/g, ' ') || 'Officer'}
+                </div>
+              </div>
+
+              <button
+                onClick={logout}
+                title="Sign Out"
+                className="ml-1 rounded-md p-1.5 text-slate-400 hover:bg-crimson-50 hover:text-crimson-700 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

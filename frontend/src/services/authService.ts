@@ -1,4 +1,10 @@
-import { apiClient, TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from './apiClient';
+import {
+  apiClient,
+  TOKEN_STORAGE_KEY,
+  USER_STORAGE_KEY,
+  AUTH_REQUEST_TIMEOUT_MS,
+  DATA_REQUEST_TIMEOUT_MS,
+} from './apiClient';
 import {
   LoginRequest,
   LoginResponse,
@@ -7,9 +13,13 @@ import {
   User,
 } from '../types';
 
+export { AUTH_REQUEST_TIMEOUT_MS };
+
 export const authService = {
   async login(payload: LoginRequest): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>('/auth/login', payload);
+    const response = await apiClient.post<LoginResponse>('/auth/login', payload, {
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
+    });
     const data = response.data;
     if (data.access_token) {
       localStorage.setItem(TOKEN_STORAGE_KEY, data.access_token);
@@ -19,7 +29,9 @@ export const authService = {
   },
 
   async signup(payload: SignupRequest): Promise<SignupResponse> {
-    const response = await apiClient.post<SignupResponse>('/auth/signup', payload);
+    const response = await apiClient.post<SignupResponse>('/auth/signup', payload, {
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
+    });
     const data = response.data;
     if (data.access_token) {
       localStorage.setItem(TOKEN_STORAGE_KEY, data.access_token);
@@ -53,7 +65,9 @@ export const authService = {
   },
 
   async checkReadiness(): Promise<{ status: string }> {
-    const response = await apiClient.get('/health/ready');
+    const response = await apiClient.get('/health/ready', {
+      timeout: DATA_REQUEST_TIMEOUT_MS,
+    });
     return response.data;
   },
 };

@@ -348,13 +348,17 @@ export const ImpactsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            Impact Management Console
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gold-700">
+            <span className="h-2 w-2 rounded-full bg-gold-600" />
+            Institutional Damage & Disruption Ledger
+          </div>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-navy-950">
+            Campus Impact Accounting
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">
-            Track and verify quantifiable damages, operational downtime, casualties, and financial impacts.
+            Audit and verify quantifiable damages, operational downtime, casualties, and financial impacts across campus facilities.
           </p>
         </div>
 
@@ -385,15 +389,15 @@ export const ImpactsPage: React.FC = () => {
       )}
 
       {/* Event Selector */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t-2 border-t-navy-800">
         <div className="flex-1">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-navy-950 mb-1.5">
             Focus Event for Impact Accounting
           </label>
           <select
             value={selectedEventId}
             onChange={(e) => setSearchParams({ event_id: e.target.value })}
-            className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white text-slate-800 focus:border-slate-500 focus:outline-none"
+            className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium bg-white text-navy-950 focus:border-navy-700 focus:outline-none"
           >
             {eventsList.map((e) => (
               <option key={e.event_id} value={e.event_id}>
@@ -414,10 +418,10 @@ export const ImpactsPage: React.FC = () => {
       </div>
 
       {/* Impacts Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden border-t-2 border-t-navy-800">
         <div className="border-b border-slate-100 p-5 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-bold text-navy-950">
               Verified & Estimated Impacts
             </h2>
             <p className="text-xs text-slate-500">
@@ -431,22 +435,22 @@ export const ImpactsPage: React.FC = () => {
 
         {isLoading ? (
           <div className="p-12">
-            <LoadingSpinner label="Loading impacts..." />
+            <LoadingSpinner label="Compiling impact records..." />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+              <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Impact Type</th>
-                  <th className="px-5 py-3 font-medium">Quantity</th>
-                  <th className="px-5 py-3 font-medium">Unit</th>
-                  <th className="px-5 py-3 font-medium">Verification</th>
-                  <th className="px-5 py-3 font-medium">Classification</th>
-                  <th className="px-5 py-3 font-medium">Affected Target / Description</th>
-                  <th className="px-5 py-3 font-medium">Estimate Basis</th>
-                  <th className="px-5 py-3 font-medium">Recorded Date</th>
-                  <th className="px-5 py-3 font-medium text-right">Action</th>
+                  <th className="px-5 py-3.5">Impact Type</th>
+                  <th className="px-5 py-3.5">Quantity</th>
+                  <th className="px-5 py-3.5">Unit</th>
+                  <th className="px-5 py-3.5">Verification</th>
+                  <th className="px-5 py-3.5">Classification</th>
+                  <th className="px-5 py-3.5">Affected Target / Description</th>
+                  <th className="px-5 py-3.5">Estimate Basis</th>
+                  <th className="px-5 py-3.5">Recorded Date</th>
+                  <th className="px-5 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -460,36 +464,36 @@ export const ImpactsPage: React.FC = () => {
                       departments,
                     });
                     return (
-                      <tr key={imp.impact_id} className="hover:bg-slate-50/80">
-                        <td className="px-5 py-3.5 font-semibold text-slate-900">
+                      <tr key={imp.impact_id} className="hover:bg-navy-50/30 transition-colors">
+                        <td className="px-5 py-3.5 font-bold text-navy-950">
                           {imp.impact_type_name || imp.impact_type_code}
                         </td>
-                        <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
+                        <td className="px-5 py-3.5 font-mono font-bold text-navy-950 text-sm">
                           {imp.quantity}
                         </td>
-                        <td className="px-5 py-3.5 text-slate-600">
+                        <td className="px-5 py-3.5 text-slate-600 font-medium">
                           {imp.unit_name || imp.unit_code}
                         </td>
                         <td className="px-5 py-3.5">
                           <span
-                            className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
+                            className={`inline-block rounded px-2 py-0.5 text-xs font-semibold border ${
                               imp.verification_status === 'verified'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                                ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                                : 'bg-amber-50 text-amber-900 border-amber-200'
                             }`}
                           >
                             {imp.verification_status}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 uppercase font-medium text-slate-600">
+                        <td className="px-5 py-3.5 uppercase font-bold text-slate-700 text-[11px]">
                           {imp.data_class_code}
                         </td>
-                        <td className="px-5 py-3.5 text-slate-700 max-w-[240px]">
-                          <div className="truncate font-medium text-slate-800" title={target.name}>
+                        <td className="px-5 py-3.5 text-slate-600 max-w-[240px]">
+                          <div className="truncate font-semibold text-slate-900" title={target.name}>
                             {target.name}
                           </div>
                           {target.kindLabel && (
-                            <div className="text-[11px] text-slate-400">{target.kindLabel}</div>
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wider">{target.kindLabel}</div>
                           )}
                         </td>
                         <td className="px-5 py-3.5 text-slate-500 max-w-[200px] truncate" title={imp.estimate_basis || ''}>
@@ -501,7 +505,7 @@ export const ImpactsPage: React.FC = () => {
                         <td className="px-5 py-3.5 text-right">
                           <button
                             onClick={() => openEditModal(imp)}
-                            className="font-semibold text-blue-600 hover:text-blue-800"
+                            className="font-bold text-xs text-navy-800 hover:text-navy-950 underline"
                           >
                             Edit
                           </button>
@@ -514,8 +518,8 @@ export const ImpactsPage: React.FC = () => {
                     <td colSpan={9} className="px-5 py-12">
                       <EmptyState
                         title="No Impacts Recorded"
-                        description="No damages or quantifiable disruptions have been recorded for this event."
-                        actionLabel="Add Impact"
+                        description="No verified or estimated campus impact units are recorded for this event."
+                        actionLabel="Record Impact"
                         onAction={openAddModal}
                       />
                     </td>

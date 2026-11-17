@@ -70,17 +70,23 @@ export const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100/90 p-4 relative">
+      {/* Top Academic Accent Banner */}
+      <div className="fixed top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-navy-950 via-navy-800 to-gold-500 z-10" />
+
+      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-teal-400 shadow-xs mb-4">
-            <ShieldAlert className="h-6 w-6" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-navy-950 text-gold-400 border-2 border-gold-500/30 shadow-xs mb-3">
+            <ShieldAlert className="h-7 w-7" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            Create an Account
+          <span className="text-[10px] font-bold uppercase tracking-widest text-gold-700">
+            University Personnel Registration
+          </span>
+          <h1 className="text-xl font-extrabold tracking-tight text-navy-950 mt-0.5">
+            Create System Account
           </h1>
-          <p className="mt-1 text-xs text-slate-500">
-            Register as a Campus Incident Reporter
+          <p className="mt-1 text-xs text-slate-500 max-w-xs">
+            Register as an Authorized Campus Incident Reporter
           </p>
         </div>
 
@@ -111,8 +117,8 @@ export const SignupPage: React.FC = () => {
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                Full Name / Display Name
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
+                Full Name / Official Display Name
               </label>
               <div className="relative">
                 <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -122,14 +128,14 @@ export const SignupPage: React.FC = () => {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Officer Jane Doe"
-                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                University Email
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
+                Official University Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -139,13 +145,13 @@ export const SignupPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jdoe@campus.edu"
-                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Password (min. 8 characters)
               </label>
               <div className="relative">
@@ -156,12 +162,12 @@ export const SignupPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-10 text-sm placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-10 text-sm placeholder:text-slate-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-navy-900"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -169,7 +175,7 @@ export const SignupPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-navy-900 mb-1.5">
                 Confirm Password
               </label>
               <div className="relative">
@@ -180,19 +186,19 @@ export const SignupPage: React.FC = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 transition-colors"
                 />
               </div>
             </div>
 
-            <div className="rounded-lg bg-slate-50 p-3 text-[11px] text-slate-600 border border-slate-200">
-              <span className="font-semibold text-slate-800">Role assignment: </span>
-              Public registration automatically grants the <code className="font-mono text-slate-800">event_reporter</code> role. Additional operational privileges are managed by system administrators.
+            <div className="rounded-md bg-navy-50/70 p-3 text-[11px] text-navy-950 border border-navy-200/80">
+              <span className="font-bold text-navy-950">Institutional role: </span>
+              Standard onboarding grants the <code className="font-mono font-semibold text-navy-800">event_reporter</code> role. Advanced investigator and administrative scopes are granted by the Campus Safety Directorate.
             </div>
 
             <Button
               type="submit"
-              className="w-full mt-2"
+              className="w-full mt-3 py-2.5 text-sm"
               size="lg"
               isLoading={isLoading}
             >
@@ -203,10 +209,10 @@ export const SignupPage: React.FC = () => {
 
         <div className="mt-6 border-t border-slate-100 pt-4 text-center">
           <p className="text-xs text-slate-500">
-            Already have an account?{' '}
+            Already have an authorized account?{' '}
             <Link
               to="/login"
-              className="font-semibold text-slate-900 hover:text-blue-600 underline-offset-4 hover:underline"
+              className="font-bold text-navy-900 hover:text-navy-700 underline-offset-4 hover:underline"
             >
               Sign In
             </Link>

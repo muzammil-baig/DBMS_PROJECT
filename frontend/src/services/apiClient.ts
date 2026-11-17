@@ -8,24 +8,45 @@ export const API_BASE_URL = rawBaseUrl.endsWith('/api/v1')
   ? rawBaseUrl
   : `${rawBaseUrl.replace(/\/+$/, '')}/api/v1`;
 
+export const DEFAULT_REQUEST_TIMEOUT_MS = 20000;
+export const DATA_REQUEST_TIMEOUT_MS = 60000;
+export const AUTH_REQUEST_TIMEOUT_MS = 75000;
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 20000,
+  timeout: DEFAULT_REQUEST_TIMEOUT_MS,
 });
 
 export const TOKEN_STORAGE_KEY = 'campus_memory_access_token';
 export const USER_STORAGE_KEY = 'campus_memory_user';
 
-// Request interceptor: attach Bearer token and optional request ID
+// Request interceptor: attach Bearer token and apply targeted timeouts
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem(TOKEN_STORAGE_KEY);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Dynamic targeted timeouts: allocate 60s for data-heavy endpoints (dashboard, events, reference, reports, analytics, health readiness)
+    // while preserving explicit timeouts (such as 75s for login and signup)
+    if (!config.timeout || config.timeout === DEFAULT_REQUEST_TIMEOUT_MS) {
+      const url = config.url || '';
+      if (
+        url.startsWith('/dashboard') ||
+        url.startsWith('/events') ||
+        url.startsWith('/reference') ||
+        url.startsWith('/reports') ||
+        url.startsWith('/analytics') ||
+        url.startsWith('/health/ready')
+      ) {
+        config.timeout = DATA_REQUEST_TIMEOUT_MS;
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

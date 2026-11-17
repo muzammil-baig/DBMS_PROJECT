@@ -17,17 +17,31 @@ import {
   ReferenceStatusTransition,
 } from '../types';
 
-// Simple in-memory cache to prevent repeated reference data fetches
-const cache: Record<string, any[]> = {};
+// In-memory cache and in-flight promise tracker to prevent duplicate reference data fetches
+const cache: Record<string, any[] | undefined> = {};
+const inFlight: Record<string, Promise<any[]> | undefined> = {};
 
 export const referenceService = {
   async getReference<T = any>(name: string, forceFresh = false): Promise<T[]> {
     if (!forceFresh && cache[name]) {
       return cache[name] as T[];
     }
-    const response = await apiClient.get<T[]>(`/reference/${name}`);
-    cache[name] = response.data;
-    return response.data;
+    if (!forceFresh && inFlight[name]) {
+      return inFlight[name] as Promise<T[]>;
+    }
+
+    const fetchPromise = (async () => {
+      try {
+        const response = await apiClient.get<T[]>(`/reference/${name}`);
+        cache[name] = response.data;
+        return response.data;
+      } finally {
+        delete inFlight[name];
+      }
+    })();
+
+    inFlight[name] = fetchPromise;
+    return fetchPromise;
   },
 
   getCategories(): Promise<ReferenceCategory[]> {
@@ -93,6 +107,9 @@ export const referenceService = {
   clearCache() {
     for (const key of Object.keys(cache)) {
       delete cache[key];
+    }
+    for (const key of Object.keys(inFlight)) {
+      delete inFlight[key];
     }
   },
 };

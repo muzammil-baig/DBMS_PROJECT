@@ -519,53 +519,53 @@ export const EventDetailPage: React.FC = () => {
       {/* Breadcrumb Navigation */}
       <Breadcrumbs
         items={[
-          { label: 'Events', path: '/events' },
+          { label: 'Incident Registry', path: '/events' },
           { label: event.event_code },
         ]}
       />
 
-      {/* Header Banner */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+      {/* Institutional Dossier Header Banner */}
+      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+              <span className="font-mono text-xs font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/80">
                 {event.event_code}
               </span>
               <span
-                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium border ${severityBadge.bg} ${severityBadge.text} ${severityBadge.border}`}
+                className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-semibold border ${severityBadge.bg} ${severityBadge.text} ${severityBadge.border}`}
               >
                 <span className={`h-1.5 w-1.5 rounded-full ${severityBadge.dotColor}`} />
                 {severityBadge.label} Severity
               </span>
               <span
-                className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}
+                className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}
               >
                 {statusBadge.label}
               </span>
-              <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">
+              <span className="text-[11px] text-gold-700 uppercase tracking-widest font-bold">
                 {event.category_name || event.category_code}
               </span>
             </div>
 
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-extrabold tracking-tight text-navy-950">
               {event.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                Started: {formatDate(event.started_at)}
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 font-medium">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-navy-700" />
+                <span>Recorded:</span> <span className="font-tabular text-slate-800">{formatDate(event.started_at)}</span>
               </span>
               {event.location_name && (
-                <span className="flex items-center gap-1">
-                  <Building className="h-3.5 w-3.5 text-slate-400" />
-                  {event.location_name}
+                <span className="flex items-center gap-1.5">
+                  <Building className="h-3.5 w-3.5 text-navy-700" />
+                  <span className="text-slate-800">{event.location_name}</span>
                 </span>
               )}
-              <span className="flex items-center gap-1">
-                <Shield className="h-3.5 w-3.5 text-slate-400" />
-                Classification: <span className="uppercase font-medium text-slate-700">{event.data_class_code}</span>
+              <span className="flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5 text-navy-700" />
+                <span>Classification:</span> <span className="uppercase font-bold text-navy-900 bg-slate-100 px-1.5 py-0.2 rounded">{event.data_class_code}</span>
               </span>
             </div>
           </div>
@@ -579,7 +579,7 @@ export const EventDetailPage: React.FC = () => {
               disabled={isTerminal}
               leftIcon={<Edit className="h-3.5 w-3.5" />}
             >
-              Edit
+              Edit Dossier
             </Button>
 
             {!isTerminal && validTransitions.length > 0 && (
@@ -598,7 +598,7 @@ export const EventDetailPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setTerminalModalType('close')}
-                leftIcon={<CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />}
+                leftIcon={<CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" />}
               >
                 Close Event
               </Button>
@@ -644,9 +644,9 @@ export const EventDetailPage: React.FC = () => {
         />
       )}
 
-      {/* Tabs */}
+      {/* University Academic Tabs */}
       <div className="border-b border-slate-200">
-        <nav className="flex space-x-6">
+        <nav className="flex space-x-6 overflow-x-auto">
           {[
             { id: 'overview', label: 'Overview & Context', icon: FileCheck },
             { id: 'relationships', label: `Relationships (${relationships.length})`, icon: GitBranch },
@@ -660,13 +660,13 @@ export const EventDetailPage: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 border-b-2 py-3 text-xs font-medium transition-colors ${
+                className={`flex items-center gap-2 border-b-2 py-3 text-xs font-medium transition-all whitespace-nowrap ${
                   isActive
-                    ? 'border-slate-900 text-slate-900 font-semibold'
-                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                    ? 'border-navy-950 text-navy-950 font-bold'
+                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-navy-900'
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className={`h-4 w-4 ${isActive ? 'text-navy-900' : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -678,80 +678,80 @@ export const EventDetailPage: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-              <h2 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-2">
-                Incident Description
+            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-2 border-t-navy-800">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-navy-950 border-b border-slate-100 pb-2">
+                Official Incident Description
               </h2>
-              <p className="mt-3 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+              <p className="mt-3 text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
                 {event.description}
               </p>
               {event.source_note && (
-                <div className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600 border border-slate-200">
-                  <span className="font-semibold text-slate-800">Source Note: </span>
+                <div className="mt-4 rounded-md bg-navy-50/60 p-3 text-xs text-navy-950 border border-navy-200/60">
+                  <span className="font-bold text-navy-900">Intake Source Note: </span>
                   {event.source_note}
                 </div>
               )}
             </div>
 
             {/* Quick Investigation Report Card */}
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs flex items-center justify-between">
+            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs flex items-center justify-between border-t-2 border-t-navy-800">
               <div>
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Institutional Investigation Report
+                <h3 className="text-sm font-bold text-navy-950">
+                  Institutional Investigation Dossier & Provenance Report
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Full synthesized report including graph traversal, timeline provenance, and impacts.
+                  Full synthesized report including graph traversal, timeline provenance, and quantitative impacts.
                 </p>
               </div>
               <Link
                 to={`/reports/investigation/${event.event_id}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-md border border-navy-900 bg-navy-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-navy-800 shadow-xs transition-colors shrink-0"
               >
-                <span>View Full Report</span>
-                <ExternalLink className="h-3.5 w-3.5 text-slate-500" />
+                <span>View Full Dossier</span>
+                <ExternalLink className="h-3.5 w-3.5 text-gold-400" />
               </Link>
             </div>
           </div>
 
           {/* Operational Context Sidebar */}
           <div className="space-y-6">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-2">
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs space-y-4 border-t-2 border-t-navy-800">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-navy-950 border-b border-slate-100 pb-2">
                 Linked Context Entities
               </h3>
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <span className="block text-slate-400 font-medium">Location</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="block text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Campus Location</span>
+                  <span className="font-semibold text-navy-950">
                     {event.location_name || '—'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="block text-slate-400 font-medium">Linked Asset</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="block text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Linked Physical Asset</span>
+                  <span className="font-semibold text-navy-950">
                     {event.asset_name || '—'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="block text-slate-400 font-medium">Critical Service</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="block text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Critical Campus Service</span>
+                  <span className="font-semibold text-navy-950">
                     {event.service_name || '—'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="block text-slate-400 font-medium">Scheduled Activity</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="block text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Scheduled Academic Activity</span>
+                  <span className="font-semibold text-navy-950">
                     {event.scheduled_activity_title || '—'}
                   </span>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100">
-                  <span className="block text-slate-400 font-medium">Last Modified</span>
-                  <span className="font-mono text-[11px] text-slate-600">
+                  <span className="block text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Last Ledger Modification</span>
+                  <span className="font-mono text-[11px] font-medium text-slate-700">
                     {formatDate(event.updated_at)}
                   </span>
                 </div>
@@ -766,34 +766,34 @@ export const EventDetailPage: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">
-                Event Causal Relationships
+              <h2 className="text-sm font-bold text-navy-950">
+                Event Causal Relationships & Cascading Provenance
               </h2>
               <p className="text-xs text-slate-500">
-                Directed connections identifying cause and cascading effect events.
+                Directed connections identifying upstream causes and downstream cascading consequences.
               </p>
             </div>
             <Link
               to={`/relationships?cause_event_id=${event.event_id}`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-md bg-navy-900 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-navy-800 shadow-xs transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
-              <span>Link New Relationship</span>
+              <span>Link Relationship</span>
             </Link>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+          <div className="rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden border-t-2 border-t-navy-800">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+                <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                   <tr>
-                    <th className="px-5 py-3 font-medium">Role</th>
-                    <th className="px-5 py-3 font-medium">Connected Event</th>
-                    <th className="px-5 py-3 font-medium">Status</th>
-                    <th className="px-5 py-3 font-medium">Confidence</th>
-                    <th className="px-5 py-3 font-medium">Explanation</th>
-                    <th className="px-5 py-3 font-medium">Evidence Count</th>
-                    <th className="px-5 py-3 font-medium text-right">Actions</th>
+                    <th className="px-5 py-3.5">Causal Role</th>
+                    <th className="px-5 py-3.5">Connected Event</th>
+                    <th className="px-5 py-3.5">Status</th>
+                    <th className="px-5 py-3.5">Confidence</th>
+                    <th className="px-5 py-3.5">Explanation</th>
+                    <th className="px-5 py-3.5">Evidence</th>
+                    <th className="px-5 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -805,13 +805,13 @@ export const EventDetailPage: React.FC = () => {
                       const otherEventTitle = isCause ? rel.effect_title : rel.cause_title;
 
                       return (
-                        <tr key={rel.relationship_id} className="hover:bg-slate-50/80">
+                        <tr key={rel.relationship_id} className="hover:bg-navy-50/30 transition-colors">
                           <td className="px-5 py-3.5">
                             <span
-                              className={`inline-block rounded px-2 py-0.5 text-[11px] font-semibold border ${
+                              className={`inline-block rounded px-2 py-0.5 text-[11px] font-bold border ${
                                 isCause
-                                  ? 'bg-amber-50 text-amber-800 border-amber-200'
-                                  : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                                  ? 'bg-gold-50 text-gold-900 border-gold-300'
+                                  : 'bg-navy-50 text-navy-900 border-navy-200'
                               }`}
                             >
                               {isCause ? 'Cause → Effect' : 'Effect ← Cause'}
@@ -820,40 +820,40 @@ export const EventDetailPage: React.FC = () => {
                           <td className="px-5 py-3.5">
                             <Link
                               to={`/events/${otherEventId}`}
-                              className="font-medium text-blue-600 hover:underline"
+                              className="font-mono font-bold text-navy-900 hover:underline"
                             >
                               {otherEventCode || 'Event'}
                             </Link>
-                            <div className="text-[11px] text-slate-500 truncate max-w-[180px]">
+                            <div className="text-[11px] text-slate-500 truncate max-w-[180px] font-medium">
                               {otherEventTitle}
                             </div>
                           </td>
                           <td className="px-5 py-3.5">
                             <span
-                              className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
+                              className={`inline-block rounded px-2 py-0.5 text-xs font-semibold border ${
                                 rel.relationship_status_code === 'confirmed'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
                                   : rel.relationship_status_code === 'suspected'
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                                  ? 'bg-amber-50 text-amber-900 border-amber-200'
+                                  : 'bg-slate-100 text-slate-700 border-slate-200'
                               }`}
                             >
                               {rel.relationship_status_code}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 font-medium font-tabular text-slate-800">
+                          <td className="px-5 py-3.5 font-bold font-tabular text-navy-950">
                             {formatConfidence(rel.confidence_score)}
                           </td>
                           <td className="px-5 py-3.5 max-w-[200px] text-slate-600 truncate">
                             {rel.explanation}
                           </td>
-                          <td className="px-5 py-3.5 font-tabular">
+                          <td className="px-5 py-3.5 font-tabular font-semibold text-slate-800">
                             {rel.evidence_count ?? 0}
                           </td>
                           <td className="px-5 py-3.5 text-right space-x-2">
                             <button
                               onClick={() => openEvidenceModal(rel.relationship_id)}
-                              className="text-xs font-medium text-teal-700 hover:text-teal-900"
+                              className="text-xs font-bold text-navy-800 hover:text-navy-950 underline"
                             >
                               + Evidence
                             </button>
@@ -865,7 +865,7 @@ export const EventDetailPage: React.FC = () => {
                                     type: 'confirm',
                                   })
                                 }
-                                className="text-xs font-medium text-emerald-700 hover:text-emerald-900"
+                                className="text-xs font-bold text-emerald-800 hover:text-emerald-950 underline"
                               >
                                 Confirm
                               </button>
@@ -878,7 +878,7 @@ export const EventDetailPage: React.FC = () => {
                                     type: 'downgrade',
                                   })
                                 }
-                                className="text-xs font-medium text-amber-700 hover:text-amber-900"
+                                className="text-xs font-bold text-amber-800 hover:text-amber-950 underline"
                               >
                                 Downgrade
                               </button>
@@ -890,7 +890,7 @@ export const EventDetailPage: React.FC = () => {
                   ) : (
                     <tr>
                       <td colSpan={7} className="px-5 py-8 text-center text-slate-400">
-                        No relationships linked to this event yet.
+                        No causal relationships linked to this event yet.
                       </td>
                     </tr>
                   )}
@@ -906,11 +906,11 @@ export const EventDetailPage: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">
-                Recorded Incident Impacts
+              <h2 className="text-sm font-bold text-navy-950">
+                Recorded Campus Impacts & Disruptions
               </h2>
               <p className="text-xs text-slate-500">
-                Quantifiable campus disruptions, financial costs, casualties, and downtime.
+                Quantifiable disruptions, financial estimates, downtime, and affected campus assets.
               </p>
             </div>
             <Button
@@ -922,19 +922,19 @@ export const EventDetailPage: React.FC = () => {
             </Button>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+          <div className="rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden border-t-2 border-t-navy-800">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+                <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                   <tr>
-                    <th className="px-5 py-3 font-medium">Impact Type</th>
-                    <th className="px-5 py-3 font-medium">Quantity</th>
-                    <th className="px-5 py-3 font-medium">Unit</th>
-                    <th className="px-5 py-3 font-medium">Verification Status</th>
-                    <th className="px-5 py-3 font-medium">Classification</th>
-                    <th className="px-5 py-3 font-medium">Affected Object / Description</th>
-                    <th className="px-5 py-3 font-medium">Estimate Basis</th>
-                    <th className="px-5 py-3 font-medium">Recorded At</th>
+                    <th className="px-5 py-3.5">Impact Type</th>
+                    <th className="px-5 py-3.5">Quantity</th>
+                    <th className="px-5 py-3.5">Unit</th>
+                    <th className="px-5 py-3.5">Verification</th>
+                    <th className="px-5 py-3.5">Classification</th>
+                    <th className="px-5 py-3.5">Affected Target / Entity</th>
+                    <th className="px-5 py-3.5">Basis</th>
+                    <th className="px-5 py-3.5">Recorded At</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -948,36 +948,36 @@ export const EventDetailPage: React.FC = () => {
                         departments,
                       });
                       return (
-                        <tr key={imp.impact_id} className="hover:bg-slate-50/80">
-                          <td className="px-5 py-3.5 font-medium text-slate-900">
+                        <tr key={imp.impact_id} className="hover:bg-navy-50/30 transition-colors">
+                          <td className="px-5 py-3.5 font-bold text-navy-950">
                             {imp.impact_type_name || imp.impact_type_code}
                           </td>
-                          <td className="px-5 py-3.5 font-mono font-semibold text-slate-900">
+                          <td className="px-5 py-3.5 font-mono font-bold text-navy-950 text-sm">
                             {imp.quantity}
                           </td>
-                          <td className="px-5 py-3.5 text-slate-600">
+                          <td className="px-5 py-3.5 text-slate-600 font-medium">
                             {imp.unit_name || imp.unit_code}
                           </td>
                           <td className="px-5 py-3.5">
                             <span
-                              className={`inline-block rounded px-2 py-0.5 text-xs font-medium border ${
+                              className={`inline-block rounded px-2 py-0.5 text-xs font-semibold border ${
                                 imp.verification_status === 'verified'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                                  ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-900 border-amber-200'
                               }`}
                             >
                               {imp.verification_status}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 uppercase font-medium text-slate-600">
+                          <td className="px-5 py-3.5 uppercase font-bold text-slate-700 text-[11px]">
                             {imp.data_class_code}
                           </td>
                           <td className="px-5 py-3.5 text-slate-600 max-w-[240px]">
-                            <div className="truncate font-medium text-slate-800" title={target.name}>
+                            <div className="truncate font-semibold text-slate-900" title={target.name}>
                               {target.name}
                             </div>
                             {target.kindLabel && (
-                              <div className="text-[11px] text-slate-400">{target.kindLabel}</div>
+                              <div className="text-[10px] text-slate-400 uppercase tracking-wider">{target.kindLabel}</div>
                             )}
                           </td>
                           <td className="px-5 py-3.5 text-slate-500 max-w-[200px] truncate" title={imp.estimate_basis || ''}>
@@ -1006,39 +1006,39 @@ export const EventDetailPage: React.FC = () => {
       {/* Tab 4: Investigation & Root Causes */}
       {activeTab === 'investigation' && (
         <div className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-            <h2 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-2">
-              Root Cause Traversal
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-2 border-t-navy-800">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-navy-950 border-b border-slate-100 pb-2">
+              Recursive Root Cause Analysis
             </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Recursive graph analysis following confirmed causal relationships backwards in time.
+              Recursive graph analysis traversing backward in time across confirmed causal relationships.
             </p>
 
             {rootCauses && rootCauses.nodes && rootCauses.nodes.length > 0 ? (
               <div className="mt-4 space-y-3">
-                <div className="text-xs text-slate-600 italic">
+                <div className="text-xs text-slate-600 italic bg-navy-50/50 p-2.5 rounded border border-navy-100">
                   {rootCauses.uniqueness_note}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                   {rootCauses.nodes.map((node) => (
                     <div
                       key={node.event_id}
-                      className="rounded-lg border border-slate-200 p-4 bg-slate-50/50 hover:bg-slate-50 transition-colors"
+                      className="rounded-md border border-slate-200 p-4 bg-slate-50 hover:border-navy-300 hover:bg-navy-50/20 transition-all shadow-xs"
                     >
                       <div className="flex items-center justify-between">
                         <Link
                           to={`/events/${node.event_id}`}
-                          className="font-mono text-xs font-bold text-blue-600 hover:underline"
+                          className="font-mono text-xs font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/80 hover:underline"
                         >
                           {node.event_code}
                         </Link>
                         <Badge variant="info">Depth: {node.minimum_depth}</Badge>
                       </div>
-                      <div className="mt-1 text-xs font-semibold text-slate-800">
+                      <div className="mt-2 text-xs font-bold text-navy-950">
                         {node.title}
                       </div>
-                      <div className="mt-2 text-[11px] text-slate-500">
-                        Path steps: {node.path_event_ids?.length || 1}
+                      <div className="mt-2 text-[11px] text-slate-500 font-medium">
+                        Causal Path Steps: <span className="font-semibold text-slate-700">{node.path_event_ids?.length || 1}</span>
                       </div>
                     </div>
                   ))}
@@ -1055,12 +1055,12 @@ export const EventDetailPage: React.FC = () => {
 
       {/* Tab 5: Status History Timeline */}
       {activeTab === 'history' && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-          <h2 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-2">
-            Provenance Status History
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-2 border-t-navy-800">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-navy-950 border-b border-slate-100 pb-2">
+            Provenance Audit History & Immutable Transitions
           </h2>
           <p className="mt-1 text-xs text-slate-500">
-            Immutable transition audit records stored with change reasoning.
+            Immutable transition audit trail recorded with forensic operational reasoning.
           </p>
 
           <div className="mt-6 flow-root">
@@ -1074,22 +1074,22 @@ export const EventDetailPage: React.FC = () => {
                     <div className="relative pb-8">
                       {!isLast && (
                         <span
-                          className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-slate-200"
+                          className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-navy-200"
                           aria-hidden="true"
                         />
                       )}
                       <div className="relative flex space-x-3">
                         <div>
-                          <span className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center ring-8 ring-white text-slate-600 text-xs font-bold">
+                          <span className="h-8 w-8 rounded-full bg-navy-950 text-gold-400 flex items-center justify-center ring-8 ring-white text-xs font-bold shadow-xs">
                             {idx + 1}
                           </span>
                         </div>
                         <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                           <div>
-                            <p className="text-xs font-medium text-slate-900">
-                              Status changed to{' '}
+                            <p className="text-xs font-semibold text-navy-950">
+                              Status transitioned to{' '}
                               <span
-                                className={`inline-block rounded px-1.5 py-0.5 text-xs font-semibold border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
+                                className={`inline-block rounded px-2 py-0.5 text-xs font-bold border ${statusProps.bg} ${statusProps.text} ${statusProps.border}`}
                               >
                                 {statusProps.label}
                               </span>
@@ -1100,7 +1100,7 @@ export const EventDetailPage: React.FC = () => {
                                 </span>
                               )}
                             </p>
-                            <p className="mt-1 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                            <p className="mt-1.5 text-xs text-slate-800 bg-navy-50/50 p-3 rounded-md border border-navy-100/80 leading-relaxed">
                               "{item.reason}"
                             </p>
                           </div>
@@ -1127,13 +1127,13 @@ export const EventDetailPage: React.FC = () => {
       >
         <form onSubmit={handleStatusChangeSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy-950 mb-1.5">
               Target Status
             </label>
             <select
               value={targetStatus}
               onChange={(e) => setTargetStatus(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white focus:border-slate-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium text-slate-800 bg-white focus:border-navy-700 focus:outline-none"
             >
               {validTransitions.map((t) => (
                 <option key={t.to_status_code} value={t.to_status_code}>
@@ -1144,7 +1144,7 @@ export const EventDetailPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-navy-950 mb-1.5">
               Operational Reason *
             </label>
             <textarea
@@ -1153,7 +1153,7 @@ export const EventDetailPage: React.FC = () => {
               value={statusReason}
               onChange={(e) => setStatusReason(e.target.value)}
               placeholder="State the findings or rationale for this status progression..."
-              className="w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-slate-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 p-2.5 text-xs text-slate-800 focus:border-navy-700 focus:outline-none leading-relaxed"
             />
           </div>
 

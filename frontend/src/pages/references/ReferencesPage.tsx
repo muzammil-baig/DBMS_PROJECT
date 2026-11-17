@@ -67,13 +67,16 @@ export const ReferencesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            System Reference Data
+          <div className="text-[10px] font-bold uppercase tracking-widest text-navy-800">
+            ACADEMIC TAXONOMY & MASTER DATA REGISTRY
+          </div>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-navy-950 font-serif">
+            Institutional Reference Directory
           </h1>
-          <p className="mt-0.5 text-xs text-slate-500">
-            Inspection console for standardized classifications, transition rules, and campus taxonomies.
+          <p className="mt-1 text-xs text-slate-500">
+            Inspection console for standardized classifications, transition state engines, and campus taxonomies.
           </p>
         </div>
 
@@ -97,19 +100,19 @@ export const ReferencesPage: React.FC = () => {
       )}
 
       {/* Collection Navigation Tabs */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-          Select Reference Collection ({REFERENCE_COLLECTIONS.length} available)
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-2xs">
+        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2.5">
+          Select Master Taxonomy ({REFERENCE_COLLECTIONS.length} Collections Available)
         </label>
         <div className="flex flex-wrap gap-1.5">
           {REFERENCE_COLLECTIONS.map((c) => (
             <button
               key={c.id}
               onClick={() => setActiveCollection(c.id)}
-              className={`rounded-lg px-2.5 py-1.5 text-xs font-medium border transition-colors ${
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium border transition-colors ${
                 activeCollection === c.id
-                  ? 'border-slate-900 bg-slate-900 text-white shadow-xs font-semibold'
-                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'border-navy-950 bg-navy-950 text-white shadow-xs font-semibold'
+                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-navy-950'
               }`}
             >
               {c.label}
@@ -119,30 +122,30 @@ export const ReferencesPage: React.FC = () => {
       </div>
 
       {/* Reference Table Container */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-        <div className="border-b border-slate-100 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden">
+        <div className="border-b border-slate-200 bg-slate-50/60 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-slate-900">
+              <h2 className="text-sm font-bold text-navy-950">
                 {activeMeta?.label}
               </h2>
               <Badge variant="neutral">
-                {filteredData.length} records
+                {filteredData.length} entries
               </Badge>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              {activeMeta?.desc} • Endpoint: <code className="font-mono text-slate-700">/api/v1/reference/{activeCollection}</code>
+              {activeMeta?.desc} • Endpoint: <code className="font-mono text-navy-900 bg-navy-50/70 px-1 py-0.5 rounded border border-navy-100">/api/v1/reference/{activeCollection}</code>
             </p>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-2 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
               placeholder="Search reference rows..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              className="rounded-lg border border-slate-200 py-1.5 pl-8 pr-3 text-xs focus:border-slate-400 focus:outline-none"
+              className="rounded-md border border-slate-300 py-1.5 pl-8 pr-3 text-xs focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
             />
           </div>
         </div>
@@ -154,19 +157,19 @@ export const ReferencesPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto max-h-[600px]">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500 sticky top-0">
+              <thead className="border-b border-slate-200 bg-navy-900/5 text-navy-950 sticky top-0 font-semibold">
                 <tr>
                   {columns.map((col) => (
-                    <th key={col} className="px-5 py-3 font-semibold uppercase tracking-wider text-[11px]">
+                    <th key={col} className="px-5 py-3 uppercase tracking-wider text-[11px]">
                       {col.replace(/_/g, ' ')}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-slate-100 text-slate-700 bg-white">
                 {filteredData.length > 0 ? (
                   filteredData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/80">
+                    <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
                       {columns.map((col) => {
                         const val = row[col];
                         return (
@@ -181,7 +184,7 @@ export const ReferencesPage: React.FC = () => {
                               <span
                                 className={
                                   col.includes('id') || col.includes('code')
-                                    ? 'font-mono text-slate-800'
+                                    ? 'font-mono text-navy-900 font-medium'
                                     : 'text-slate-800'
                                 }
                               >

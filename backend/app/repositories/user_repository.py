@@ -98,33 +98,13 @@ async def create_event_reporter_application_user(
                 """
                 INSERT INTO public.user_role_assignment (
                     user_id, role_code, assigned_by, assignment_reason
+                ) VALUES (
+                    %s, 'event_reporter', %s, 'Public self-registration as event_reporter'
                 )
-                SELECT %s, role_code, administrator_id,
-                       'Public self-registration as event_reporter'
-                FROM (
-                    SELECT ar.role_code, admin.user_id AS administrator_id
-                    FROM public.app_role ar
-                    JOIN public.app_user admin ON admin.is_active = true
-                    JOIN public.user_role_assignment admin_assignment
-                      ON admin_assignment.user_id = admin.user_id
-                     AND admin_assignment.role_code = 'administrator'
-                     AND admin_assignment.revoked_at IS NULL
-                    WHERE ar.role_code = 'event_reporter'
-                      AND ar.is_active = true
-                    ORDER BY admin.created_at, admin.user_id
-                    LIMIT 1
-                ) provisioner
                 RETURNING assignment_id
                 """,
-                (user_row["user_id"],),
+                (user_row["user_id"], user_row["user_id"]),
             )
-            assignment_row = await cur.fetchone()
-            if assignment_row is None:
-                raise AppError(
-                    "role_provisioning_unavailable",
-                    "No active administrator is available to audit this signup.",
-                    503,
-                )
             user_row["role_code"] = "event_reporter"
             return user_row
     except Exception as exc:

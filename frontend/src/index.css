@@ -31,13 +31,39 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900;
+    @apply bg-slate-50 text-slate-800 antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Refined institutional headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight text-slate-900;
   }
 }
 
 .font-tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Institutional custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* University notice board styling */
+.university-notice-strip {
+  background: linear-gradient(90deg, #0b2341 0%, #1e3f64 70%, #c59a28 100%);
 }
 
 @media print {

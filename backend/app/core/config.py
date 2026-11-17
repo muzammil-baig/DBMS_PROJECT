@@ -21,13 +21,13 @@ class Settings(BaseSettings):
     database_url: str | None = None
     db_pool_min_size: int = Field(default=1, ge=1, le=10)
     db_pool_max_size: int = Field(default=5, ge=1, le=20)
-    db_connect_timeout_seconds: float = 8.0
+    db_connect_timeout_seconds: float = 45.0
     db_statement_timeout_ms: int = 15000
 
     supabase_url: str | None = None
     supabase_publishable_key: str | None = None
     auth_provider: str | None = None
-    auth_timeout_seconds: float = 5.0
+    auth_timeout_seconds: float = 15.0
 
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 

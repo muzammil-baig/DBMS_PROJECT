@@ -218,13 +218,17 @@ export const EvidencePage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs border-t-4 border-t-navy-950">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gold-700">
+            <span className="h-2 w-2 rounded-full bg-gold-600" />
+            Evidentiary Archive & Custody
+          </div>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-navy-950">
             Evidence & Chain of Custody
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">
-            Audit-grade evidentiary records supporting causal linkages and investigation findings.
+            Audit-grade evidentiary records supporting causal linkages, telemetry validation, and investigation findings.
           </p>
         </div>
 
@@ -257,15 +261,15 @@ export const EvidencePage: React.FC = () => {
       )}
 
       {/* Event Selector */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t-2 border-t-navy-800">
         <div className="flex-1">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-navy-950 mb-1.5">
             Filter Evidence by Incident Dossier
           </label>
           <select
             value={selectedEventId}
             onChange={(e) => setSearchParams({ event_id: e.target.value })}
-            className="w-full rounded-lg border border-slate-300 py-2 px-3 text-xs bg-white text-slate-800 focus:border-slate-500 focus:outline-none"
+            className="w-full rounded-md border border-slate-300 py-2 px-3 text-xs font-medium bg-white text-navy-950 focus:border-navy-700 focus:outline-none"
           >
             {eventsList.map((e) => (
               <option key={e.event_id} value={e.event_id}>
@@ -286,10 +290,10 @@ export const EvidencePage: React.FC = () => {
       </div>
 
       {/* Evidence Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden border-t-2 border-t-navy-800">
         <div className="border-b border-slate-100 p-5 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-bold text-navy-950">
               Corroborating Evidence Records
             </h2>
             <p className="text-xs text-slate-500">
@@ -303,41 +307,43 @@ export const EvidencePage: React.FC = () => {
 
         {isLoading ? (
           <div className="p-12">
-            <LoadingSpinner label="Loading evidence records..." />
+            <LoadingSpinner label="Compiling evidence records..." />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-slate-500">
+              <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Evidence ID</th>
-                  <th className="px-5 py-3 font-medium">Type</th>
-                  <th className="px-5 py-3 font-medium">Description</th>
-                  <th className="px-5 py-3 font-medium">Source Reference</th>
-                  <th className="px-5 py-3 font-medium">Classification</th>
-                  <th className="px-5 py-3 font-medium">Recorded At</th>
-                  <th className="px-5 py-3 font-medium text-right">Links</th>
+                  <th className="px-5 py-3.5">Evidence ID</th>
+                  <th className="px-5 py-3.5">Type</th>
+                  <th className="px-5 py-3.5">Description</th>
+                  <th className="px-5 py-3.5">Source Reference</th>
+                  <th className="px-5 py-3.5">Classification</th>
+                  <th className="px-5 py-3.5">Recorded At</th>
+                  <th className="px-5 py-3.5 text-right">Links</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {evidenceList.length > 0 ? (
                   evidenceList.map((ev) => (
-                    <tr key={ev.evidence_id} className="hover:bg-slate-50/80">
-                      <td className="px-5 py-3.5 font-mono text-slate-500">
-                        {ev.evidence_id.slice(0, 8)}...
+                    <tr key={ev.evidence_id} className="hover:bg-navy-50/30 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <span className="font-mono font-bold text-navy-900 bg-navy-50 px-2 py-0.5 rounded border border-navy-200/80">
+                          {ev.evidence_id.slice(0, 8)}...
+                        </span>
                       </td>
                       <td className="px-5 py-3.5">
                         <Badge variant="info">
                           {ev.evidence_type_code}
                         </Badge>
                       </td>
-                      <td className="px-5 py-3.5 font-medium text-slate-900 max-w-sm">
+                      <td className="px-5 py-3.5 font-semibold text-navy-950 max-w-sm leading-relaxed">
                         {ev.description}
                       </td>
-                      <td className="px-5 py-3.5 text-slate-600">
+                      <td className="px-5 py-3.5 text-slate-600 font-medium">
                         {ev.source_reference || '—'}
                       </td>
-                      <td className="px-5 py-3.5 uppercase font-medium text-slate-600">
+                      <td className="px-5 py-3.5 uppercase font-bold text-slate-700 text-[11px]">
                         {ev.data_class_code}
                       </td>
                       <td className="px-5 py-3.5 text-slate-500 font-tabular">
@@ -349,7 +355,7 @@ export const EvidencePage: React.FC = () => {
                             href={ev.source_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:underline"
+                            className="inline-flex items-center gap-1 font-bold text-navy-800 hover:text-navy-950 underline"
                           >
                             <span>Open URL</span>
                             <ExternalLink className="h-3 w-3" />
