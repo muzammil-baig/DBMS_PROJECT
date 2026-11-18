@@ -78,12 +78,12 @@ frontend/
 
 1. Open your terminal in the `frontend` folder:
    ```bash
-   cd E:\Campus-Memory\frontend
+   cd frontend
    ```
 
 2. Install dependencies:
    ```bash
-   npm install
+   npm ci
    ```
 
 3. Configure environment variables:
@@ -95,6 +95,8 @@ frontend/
    ```env
    VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
    ```
+   On Windows PowerShell, use
+   `if (-not (Test-Path .env)) { Copy-Item .env.example .env }`.
 
 ---
 
